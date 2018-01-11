@@ -50,7 +50,11 @@ func (c *Add)Exec(Tab hrontabd.TimeTable, args []string)  (response string, err 
 	}else{
 
 		if INDEX==""{
-			INDEX = uuid.NewV4().String()
+			if uid, err := uuid.NewV4(); err == nil{
+				INDEX = uid.String()
+			}else{
+				panic(err)
+			}
 		}
 
 		job := Job.New()
