@@ -18,7 +18,7 @@ type handler struct {
 
 const WlcMessage = "ShLAC terminal connected OK\n" +
 	"type \"help\" or \"\\h\" for show available commands"
-const logPrefix = "[client.telnet] "
+const logPrefix = "[client.telnet]"
 
 
 func NewHandler(listen net.Addr, cli ComLineIf.CLI) *handler{
@@ -32,6 +32,8 @@ func (h *handler) Handle(Tab hrontabd.TimeTable){
 	IPC, err := net.Listen(h.addr.Network(), h.addr.String())
 	if err != nil {
 		log.Panicf("%s: %s", "ERROR", err.Error())
+	}else{
+		log.Printf(logPrefix + "Listen: %s://%s", IPC.Addr().Network(), IPC.Addr().String())
 	}
 	defer func(){
 		IPC.Close()

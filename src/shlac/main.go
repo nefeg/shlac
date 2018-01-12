@@ -16,9 +16,18 @@ import (
 	. "shared/config"
 )
 
-var ErrCmdArgs      = errors.New("ERR: expected argument")
-var ErrConfFile     = errors.New("ERR: invalid config file")
-var ErrConfInvalid  = errors.New("ERR: invalid config")
+var ErrCmdArgs          = errors.New("ERR: expected argument")
+var ErrNoConfFile       = errors.New("ERR: config file not found")
+var ErrConfCorrupted    = errors.New("ERR: invalid config")
+var ConfigPaths         = []string{
+	"config.json",
+	"/etc/shlac/config.json",
+	"/etc/shlacd/config.json",
+}
+
+type ExportOpt struct {
+	ShowId  bool
+}
 
 func init()  {
 	sig.SIG_INT(nil)
@@ -42,8 +51,8 @@ func main(){
 
 	app := cli.NewApp()
 	app.Version             = "0.1"
-	app.Name                = "SHLAC"
-	app.Usage               = "SHlac Like As Cron"
+	app.Name                = "ShLAC"
+	app.Usage               = "[SH]lac [L]ike [A]s [C]ron"
 	app.Author              = "Evgeny Nefedkin"
 	app.Email               = "evgeny.nefedkin@umbrella-web.com"
 	app.EnableBashCompletion= true
@@ -80,7 +89,6 @@ func main(){
 	app.Flags =  []cli.Flag{
 		cli.StringFlag{
 			Name:  "config, c",
-			Value: `/etc/shlacd/shlacd.conf`,
 			Usage: "path to daemon config-file",
 		},
 	}
@@ -88,6 +96,69 @@ func main(){
 
 	// COMMANDS
 	app.Commands = []cli.Command{
+
+		{// REMOVE
+			Name:    "remove",
+			Aliases: []string{"rm", "r"},
+			Usage:   "remove jobs ",
+			UsageText: "Example: \n" +
+				"\t\tshlac rm -i <job id>\n" +
+				"\t\tshlac rm --all",
+
+			Flags: 	[]cli.Flag{
+				cli.BoolFlag{
+					Name:  "all,purge",
+					Usage: "remove all jobs",
+				},
+				cli.StringFlag{
+					Name:  "id,i",
+					Usage: "remove job by id",
+				},
+			},
+
+			Action:  func(c *cli.Context) error {
+
+				// Override config
+				if confFile := c.GlobalString("config"); confFile != ""{
+					ConfigPaths = []string{confFile}
+				}
+
+				connection := connect( loadConfig(ConfigPaths) )
+				defer func(){
+					connection.Write([]byte(`\q`))
+					connection.Close()
+				}()
+
+				if jobId := c.String("id"); jobId != ""{
+					remove(jobId)
+
+				}else if c.Bool("all"){
+					purge()
+				}
+
+				return nil
+			},
+		},
+
+		{// PURGE
+			Name:    "purge",
+			Usage:   "remove all jobs ",
+			UsageText: "Example: " +
+				"shlac purge",
+
+			Action:  func(c *cli.Context) error {
+
+				// Override config
+				if confFile := c.GlobalString("config"); confFile != ""{
+					ConfigPaths = []string{confFile}
+				}
+
+				purge()
+
+				return nil
+			},
+		},
+
 		{// IMPORT
 			Name:    "import",
 			Aliases: []string{"i"},
@@ -97,7 +168,7 @@ func main(){
 
 			Flags: 	[]cli.Flag{
 				cli.BoolFlag{
-					Name:  "purge, p",
+					Name:  "purge",
 					Usage: "delete jobs before import",
 				},
 
@@ -116,16 +187,15 @@ func main(){
 					panic(ErrCmdArgs)
 				}
 
-				connection := connect( loadConfig(c.GlobalString("config")) )
-				defer func(){
-					connection.Write([]byte(`\q`))
-					connection.Close()
-				}()
+				// Override config
+				if confFile := c.GlobalString("config"); confFile != ""{
+					ConfigPaths = []string{confFile}
+				}
 
 				// clean table before import
-				if c.Bool("purge"){ purge(connection) }
+				if c.Bool("purge"){ purge() }
 
-				Import(filePath, connection, !c.Bool("skip-check"))
+				Import(filePath, !c.Bool("skip-check"))
 
 				return nil
 			},
@@ -152,14 +222,12 @@ func main(){
 					panic(ErrCmdArgs)
 				}
 
-				connection := connect( loadConfig(c.GlobalString("config")) )
-				defer func(){
-					connection.Write([]byte(`\q`))
-					connection.Close()
-				}()
+				// Override config
+				if confFile := c.GlobalString("config"); confFile != ""{
+					ConfigPaths = []string{confFile}
+				}
 
-
-				ImportLine(cronString, connection, !c.Bool("skip-check"))
+				ImportLine(cronString, !c.Bool("skip-check"))
 
 				return nil
 			},
@@ -169,22 +237,36 @@ func main(){
 			Name:    "export",
 			Aliases: []string{"e"},
 			Usage:   "export jobs to file in cron-format",
-			UsageText: "Example: shlac export <path/to/export/file>",
+			UsageText: "Example: \n" +
+				"\t\tto stdout:\tshlac export\n" +
+				"\t\tto file:\tshlac export -f <path/to/export/file>",
+			Flags: 	[]cli.Flag{
+				cli.StringFlag{
+					Name:  "file, f",
+					Usage: "export to file",
+				},
+				cli.BoolFlag{
+					Name:   "show-id, i",
+					Usage:  "export with job ids",
+				},
+			},
 			Action:  func(c *cli.Context) error {
 
-				filePath := c.Args().Get(0)
-				if filePath == "" {
-					panic(ErrCmdArgs)
+				// Override config
+				if confFile := c.GlobalString("config"); confFile != ""{
+					ConfigPaths = []string{confFile}
 				}
 
-				connection := connect( loadConfig(c.GlobalString("config")) )
-				defer func(){
-					connection.Write([]byte(`\q`))
-					connection.Close()
-				}()
+				exportOptions   := ExportOpt{ShowId:c.Bool("show-id")}
+				exportedData    := Export(exportOptions)
 
 
-				Export(filePath, connection)
+				if exportFile := c.String("file"); exportFile != ""{
+					ioutil.WriteFile(exportFile, []byte(exportedData), 0644)
+
+				}else{
+					fmt.Print(exportedData)
+				}
 
 				return nil
 			},
@@ -195,25 +277,32 @@ func main(){
 }
 
 
-func Export(filePath string, connection net.Conn){
+func Export(options ExportOpt) string{
 
-	flushConnection(connection) // clear socket buffer
-	connection.Write([]byte(`\l`))
-
-	response := flushConnection(connection) // read answer
+	response := sendCommand(`\l`) // send command and read answer
 
 	response = response[:len(response)-4] // remove terminal bytes
 
-	re := regexp.MustCompile(`(?m)^.+?\s+`) // remove jobs id
-	response = re.ReplaceAll(response, []byte{})
+	if !options.ShowId{
+		re := regexp.MustCompile(`(?m)^.+?\s+`) // remove jobs id
+		response = re.ReplaceAll(response, []byte{})
 
-	fmt.Println(string(response))
+	}else{
 
+		matches := regexp.MustCompile(`(?m)^(.+?\s)([0-9,\/*-LW#]+\s+){5,7}(.+)$`).FindAllSubmatchIndex(response, -1)
 
-	ioutil.WriteFile(filePath, response, 0644)
+		for i := range matches{
+
+			response = append(response, response[matches[i][3]:matches[i][7]]...)
+			response = append(response, []byte(" # ")...)
+			response = append(response, response[:matches[i][3]]...)
+		}
+	}
+
+	return string(response)
 }
 
-func Import(filePath string, connection net.Conn, checkDuplicates bool){
+func Import(filePath string, checkDuplicates bool){
 
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -225,7 +314,7 @@ func Import(filePath string, connection net.Conn, checkDuplicates bool){
 
 	for scanner.Scan() {
 
-		ImportLine(scanner.Text(), connection, checkDuplicates)
+		ImportLine(scanner.Text(), checkDuplicates)
 
 		// MAIN LOOP
 	}
@@ -236,43 +325,67 @@ func Import(filePath string, connection net.Conn, checkDuplicates bool){
 
 }
 
-func ImportLine(cronString string, connection net.Conn, checkDuplicates bool){
+func ImportLine(cronString string, checkDuplicates bool){
 
-	delimiter   := regexp.MustCompile(`\s+`)
+	var importLine string
 
-	parts := delimiter.Split(cronString, 6)
+	if cronString == "\n"{
+		importLine = cronString
 
-	cronLine    := strings.Join(parts[:5], " ")
-	commandLine := parts[5]
+	}else{
+		re := regexp.MustCompile(`^([0-9,\/*-LW#]+\s+){5,7}(.+)$`)
+		matches := re.FindStringSubmatchIndex(cronString)
 
-	importLine := fmt.Sprintf(`\a -cron "%s" -cmd "%s"`+"\n", cronLine, commandLine)
+		cronLine    := strings.Trim( cronString[:matches[4]], " \t" )
+		commandLine := strings.Trim( cronString[matches[4]:], " \t" )
 
-	if cronLine[:1] == `#`{
-		fmt.Printf("SKIPP (disabled)>> %s", importLine)
-		return
+		importLine = fmt.Sprintf(`\a -cron "%s" -cmd %q`, cronLine, commandLine)
+
+		if cronLine[:1] == `#`{
+			fmt.Printf("SKIPP (disabled)>> %s\n", importLine)
+			return
+		}
+
+		if checkDuplicates && isDuplicated(cronString){
+			fmt.Printf("SKIPP (duplicated)>> %s\n", importLine)
+			return
+		}
+
+
+		fmt.Printf("IMPORT>> %s\n", importLine)
 	}
 
-	if checkDuplicates && isDuplicated(cronString, connection){
-		fmt.Printf("SKIPP (duplicated)>> %s", importLine)
-		return
-	}
 
-
-	fmt.Printf("IMPORT>> %s", importLine)
-	connection.Write([]byte(importLine))
+	sendCommand(importLine)
 }
 
 
-func loadConfig(configPath string) (config *Config) {
 
-	configRaw, err := ioutil.ReadFile(configPath)
-	if err != nil {
-		panic(ErrConfFile)
+func loadConfig(configPaths []string) (config *Config) {
+
+	configRaw := func(configPaths []string) (configRaw []byte){
+
+		for _,configPath := range configPaths{
+
+			configRaw, err := ioutil.ReadFile(configPath)
+
+			if err == nil && configRaw != nil {
+				return configRaw
+			}
+		}
+
+		return nil
+
+	}(configPaths)
+
+
+	if configRaw == nil {
+		panic(fmt.Sprint(ErrNoConfFile, configPaths))
 	}
 
 	config = &Config{}
 	if err := json.Unmarshal(configRaw, config); err != nil{
-		panic(ErrConfInvalid)
+		panic(ErrConfCorrupted)
 	}
 
 	return config
@@ -291,6 +404,23 @@ func connect(config *Config) (connection net.Conn){
 	return conn
 }
 
+func sendCommand(command string) (received []byte){
+
+	connection := connect( loadConfig(ConfigPaths) )
+	defer func(){
+		connection.Write([]byte(`\q`))
+		connection.Close()
+	}()
+
+	flushConnection(connection) // clear socket buffer
+
+	connection.Write([]byte(command+"\n"))
+
+	received = flushConnection(connection)
+
+	return received
+}
+
 func flushConnection(connection net.Conn) (flushed []byte){
 
 	bufSize := 256
@@ -307,11 +437,21 @@ func flushConnection(connection net.Conn) (flushed []byte){
 	return flushed
 }
 
-func purge(connection net.Conn){
-	connection.Write([]byte(`\r --all`))
+func purge(){
+	sendCommand(`\r --all`)
 }
 
-func isDuplicated(cronLine string, connection net.Conn) bool {
+func remove(jobId string){
+	sendCommand(`\r -id `+jobId)
+}
+
+func isDuplicated(cronLine string) bool {
+
+	connection := connect( loadConfig(ConfigPaths) )
+	defer func(){
+		connection.Write([]byte(`\q`))
+		connection.Close()
+	}()
 
 	cronLine = strings.Replace(cronLine, `"`, `\"`, -1)
 

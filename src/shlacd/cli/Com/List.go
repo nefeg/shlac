@@ -24,7 +24,6 @@ func (c *List) Exec(Tab hrontabd.TimeTable, args []string)  (response string, er
 
 	}(&response, &err)
 
-	var defaultResponse = "null"
 
 	Args := flag.NewFlagSet("com_list", flag.PanicOnError)
 	Args.Parse(args)
@@ -32,10 +31,6 @@ func (c *List) Exec(Tab hrontabd.TimeTable, args []string)  (response string, er
 	// show help
 	for _,job := range Tab.ListJobs() {
 		response += c.view( job )
-	}
-
-	if response == "" {
-		response = defaultResponse
 	}
 
 	return response, nil
@@ -51,7 +46,7 @@ func (c *List) view(job hrontabd.Job) string{
 	return fmt.Sprintln(
 		job.Id(),"\t",
 		job.CronLine(),"\t",
-		"\""+job.Command()+"\"",
+		job.Command(),
 	)
 }
 
