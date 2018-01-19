@@ -1,7 +1,6 @@
 package Job
 
 import (
-	"shlacd/hrontabd"
 	"time"
 	"encoding/json"
 	"log"
@@ -72,7 +71,7 @@ func (j *job) Serialize() string{
 	return string(s)
 }
 
-func (j *job) UnSerialize(data string) (job hrontabd.Job){
+func (j *job) UnSerialize(data string){
 
 	err := json.Unmarshal([]byte(data), j)
 	if err != nil{
@@ -80,7 +79,5 @@ func (j *job) UnSerialize(data string) (job hrontabd.Job){
 	}
 
 	log.Println("[Job]Unserialize: ", j, err)
-
-	return hrontabd.Job(j)
 }
 

@@ -1,7 +1,7 @@
 package Com
 
 import (
-	"shlacd/hrontabd"
+	"shlacd/app/api"
 	"fmt"
 	"flag"
 	"errors"
@@ -14,7 +14,7 @@ type List struct{
 const usageList = "usage: \n" +
 	"\t  list (\\l) \n"
 
-func (c *List) Exec(Tab hrontabd.TimeTable, args []string)  (response string, err error){
+func (c *List) Exec(Tab api.TimeTable, args []string)  (response string, err error){
 
 	defer func(response *string, err *error){
 		if r := recover(); r!=nil{
@@ -41,7 +41,7 @@ func (c *List) Usage() string{
 	return c.Desc() + "\n\t" + usageList
 }
 
-func (c *List) view(job hrontabd.Job) string{
+func (c *List) view(job api.Job) string{
 
 	return fmt.Sprintln(
 		job.Id(),"\t",

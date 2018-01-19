@@ -1,13 +1,13 @@
 package socket
 
 import (
-	"shlacd/hrontabd"
 	"net"
 	"io"
 	"log"
 	"os"
 	ComLineIf "shlacd/cli"
 	"shlacd/cli/Com"
+	"shlacd/app/api"
 )
 
 type handler struct {
@@ -27,7 +27,7 @@ func NewHandler(listen net.Addr, cli ComLineIf.CLI) *handler{
 }
 
 
-func (h *handler) Handle(Tab hrontabd.TimeTable){
+func (h *handler) Handle(Tab api.TimeTable){
 
 	IPC, err := net.Listen(h.addr.Network(), h.addr.String())
 	if err != nil {
@@ -61,7 +61,7 @@ func (h *handler) Handle(Tab hrontabd.TimeTable){
 	}
 }
 
-func (h *handler)handleConnection(Connection net.Conn, Tab hrontabd.TimeTable){
+func (h *handler)handleConnection(Connection net.Conn, Tab api.TimeTable){
 
 	var response string
 

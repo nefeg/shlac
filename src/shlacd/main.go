@@ -7,8 +7,8 @@ import (
 	"os"
 	"io/ioutil"
 	"encoding/json"
-	. "shared/config"
-
+	. "shared/config/app"
+	shlacd "shlacd/app"
 )
 
 var App Application
@@ -38,6 +38,6 @@ func main(){
 		json.Unmarshal(config, &AppConfig)
 	}
 
-	App = Application( CreateApp(AppConfig) )
+	App = Application( shlacd.New(AppConfig) )
 	App.Run()
 }

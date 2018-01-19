@@ -1,7 +1,7 @@
 package Com
 
 import (
-	"shlacd/hrontabd"
+	"shlacd/app/api"
 	"errors"
 )
 
@@ -13,7 +13,7 @@ const usageQuit = "usage: \n\t  quit (\\q) \n"
 
 var ErrConnectionClosed = errors.New("** command <QUIT> received")
 
-func (c *Quit)Exec(Tab hrontabd.TimeTable, args []string)  (string, error){
+func (c *Quit)Exec(Tab api.TimeTable, args []string)  (string, error){
 
 	return "OK", ErrConnectionClosed
 }

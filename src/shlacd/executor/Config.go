@@ -2,7 +2,7 @@ package executor
 
 import (
 	"log"
-	"shlacd/hrontabd"
+	"shlacd/app/api"
 )
 
 // executor config
@@ -17,7 +17,7 @@ type Config struct {
 }
 
 
-func Resolve(conf Config) (exe hrontabd.Executor){
+func Resolve(conf Config) (exe api.Executor){
 
 	switch conf.Type {
 	case "local":

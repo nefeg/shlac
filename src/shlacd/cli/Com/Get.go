@@ -1,7 +1,7 @@
 package Com
 
 import (
-	"shlacd/hrontabd"
+	"shlacd/app/api"
 	"fmt"
 	"flag"
 	"errors"
@@ -18,7 +18,7 @@ const usageGet = "usage: \n" +
 	"\t  get (\\g) -c <cron-formatted job line>\n" +
 	"\t  get (\\g) --help\n"
 
-func (c *Get) Exec(Tab hrontabd.TimeTable, args []string)  (response string, err error){
+func (c *Get) Exec(Tab api.TimeTable, args []string)  (response string, err error){
 
 	defer func(response *string, err *error){
 		if r := recover(); r!=nil{
@@ -75,7 +75,7 @@ func (c *Get) Usage() string{
 	return c.Desc() + "\n\t" + usageGet
 }
 
-func (c *Get) view(job hrontabd.Job) string{
+func (c *Get) view(job api.Job) string{
 
 	return fmt.Sprintln(
 		job.Id(),"\t",

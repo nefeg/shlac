@@ -1,4 +1,4 @@
-package hrontabd
+package api
 
 import "time"
 
@@ -12,5 +12,5 @@ type Job interface {
 	SetCronLine(timeLine string)
 
 	Serialize() string
-	UnSerialize(data string) Job
+	UnSerialize(data string)
 }

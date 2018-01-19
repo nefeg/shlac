@@ -1,21 +1,21 @@
 package Tab
 
 import (
-	. "shlacd/hrontabd"
 	"log"
-	J "shlacd/hrontabd/Job"
+	"shlacd/app/Job"
+	"shlacd/app/api"
 )
 
 type table struct {
 
-	db          Storage
-	jobs        []Job
+	db          api.Storage
+	jobs        []api.Job
 	version     string
 }
 
 
 // constructor
-func New (s Storage) *table{
+func New (s api.Storage) *table{
 
 	t := &table{ db:s }
 	t.load()
@@ -25,7 +25,7 @@ func New (s Storage) *table{
 
 
 
-func (t *table) FindJob(jobId string) (job Job){
+func (t *table) FindJob(jobId string) (job api.Job){
 
 	t.sync()
 	for _, j := range t.jobs{
@@ -43,9 +43,9 @@ func (t *table) RmJob(jobId string) bool{
 	return r
 }
 
-func (t *table) AddJob(job Job, force bool){
+func (t *table) AddJob(job api.Job, force bool){
 
-	defer func(job Job){
+	defer func(job api.Job){
 
 		if r := recover(); r!=nil{
 			log.Printf("[Tab]Add (panic): %v", r)
@@ -74,7 +74,7 @@ func (t *table) AddJob(job Job, force bool){
 
 }
 
-func (t *table) PullJob(jobId string) (job Job){
+func (t *table) PullJob(jobId string) (job api.Job){
 
 	log.Println("[hrentab.table] PullJob: Trying to lock job...")
 	if t.db.Lock(jobId){
@@ -93,14 +93,14 @@ func (t *table) PullJob(jobId string) (job Job){
 	return job
 }
 
-func (t *table) PushJob(job Job)  {
+func (t *table) PushJob(job api.Job)  {
 
 	t.db.UnLock(job.Id())
 	log.Printf("[hrentab.table] PushJob: Release lock for job#%s\n", job.Id())
 
 }
 
-func (t *table) ListJobs() []Job{
+func (t *table) ListJobs() []api.Job{
 
 	t.sync()
 
@@ -136,6 +136,8 @@ func (t *table) load(){
 	t.jobs    = nil
 	t.version = t.db.Version()
 	for _, jobData := range t.db.List() {
-		t.jobs = append(t.jobs, J.New().UnSerialize(string(jobData)) )
+		job := Job.New()
+		job.UnSerialize(string(jobData))
+		t.jobs = append(t.jobs, job)
 	}
 }

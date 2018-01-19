@@ -1,4 +1,4 @@
-package hrontabd
+package api
 
 type TimeTable interface {
 

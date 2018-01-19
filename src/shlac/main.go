@@ -5,32 +5,46 @@ import (
 	"github.com/urfave/cli"
 	"fmt"
 	"errors"
-	"shared/sig"
-	"net"
-	"bufio"
-	"regexp"
-	"strings"
 	"io/ioutil"
 	"encoding/json"
-	"bytes"
-	. "shared/config"
+	"time"
+	"shared/sig"
+	"shared/config/app"
+	"shared/config/addr"
+	"github.com/umbrella-evgeny-nefedkin/slog"
+
+	"shlac/lib"
+	shlac "shlac/app"
 )
 
-var ErrCmdArgs          = errors.New("ERR: expected argument")
-var ErrNoConfFile       = errors.New("ERR: config file not found")
-var ErrConfCorrupted    = errors.New("ERR: invalid config")
+var Application App
+
 var ConfigPaths         = []string{
 	"config.json",
 	"/etc/shlac/config.json",
 	"/etc/shlacd/config.json",
 }
 
-type ExportOpt struct {
-	ShowId  bool
-}
+
+var ErrCmdArgs          = errors.New("ERR: expected argument")
+var ErrNoConfFile       = errors.New("ERR: config file not found")
+var ErrConfCorrupted    = errors.New("ERR: invalid config data")
+
+const FL_DEBUG      = "debug"
+
+const COM_IMPORT    = "import"
+const COM_ADD       = "add"
+const COM_EXPORT    = "export"
+const COM_PURGE     = "purge"
+const COM_REMOVE    = "remove"
+
+
+
 
 func init()  {
 	sig.SIG_INT(nil)
+
+	slog.SetLevel(slog.LvlError)
 }
 
 
@@ -48,15 +62,15 @@ func main(){
 	}()
 
 
-
-	app := cli.NewApp()
-	app.Version             = "0.1"
-	app.Name                = "ShLAC"
-	app.Usage               = "[SH]lac [L]ike [A]s [C]ron"
-	app.Author              = "Evgeny Nefedkin"
-	app.Email               = "evgeny.nefedkin@umbrella-web.com"
-	app.EnableBashCompletion= true
-	app.Description         = "Distributed and concurrency job manager\n" +
+	Cli := cli.NewApp()
+	Cli.Version             = "0.1"
+	Cli.Name                = "ShLAC"
+	Cli.Usage               = "[SH]lac [L]ike [A]s [C]ron"
+	Cli.Author              = "Evgeny Nefedkin"
+	Cli.Compiled            = time.Now()
+	Cli.Email               = "evgeny.nefedkin@umbrella-web.com"
+	Cli.EnableBashCompletion= true
+	Cli.Description         = "Distributed and concurrency job manager\n" +
 
 		"\t\tSupported extended syntax:\n" +
 		"\t\t------------------------------------------------------------------------\n" +
@@ -79,30 +93,60 @@ func main(){
 		"\t\t@annually   Run once a year at midnight in the morning of January 1                 0 0 0 1 1 * *\n" +
 		"\t\t@yearly     Run once a year at midnight in the morning of January 1                 0 0 0 1 1 * *\n" +
 		"\t\t@monthly    Run once a month at midnight in the morning of the first of the month   0 0 0 1 * * *\n" +
-		"\t\t@weekly     Run once a week at midnight in the morning of Sunday                    0 0 0 * * 0 *\n" +
+		"\t\t@weekly     Run once a week at midnight in t                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             he morning of Sunday                    0 0 0 * * 0 *\n" +
 		"\t\t@daily      Run once a day at midnight                                              0 0 0 * * * *\n" +
 		"\t\t@hourly     Run once an hour at the beginning of the hour                           0 0 * * * * *\n" +
 		"\t\t@reboot     Not supported"
 
 
+	Cli.Before = func(c *cli.Context) error {
+		// Override config
+		if confFile := c.GlobalString("config"); confFile != ""{
+			ConfigPaths = []string{confFile}
+		}
+
+		if c.GlobalBool(FL_DEBUG){
+			slog.SetLevel(slog.LvlDebug)
+		}
+
+		slog.DebugLn("Config paths:", ConfigPaths)
+
+		AppConfig := loadConfig(ConfigPaths)
+
+		ComSender := lib.NewCommander()
+		ComSender.Connect( &addr.Config{
+			Protocol: AppConfig.Client.Options.Network,
+			Address: AppConfig.Client.Options.Address,
+		})
+
+		Application = shlac.New( ComSender )
+
+		return nil
+	}
+
+
 	// CONFIG
-	app.Flags =  []cli.Flag{
+	Cli.Flags =  []cli.Flag{
 		cli.StringFlag{
 			Name:  "config, c",
 			Usage: "path to daemon config-file",
+		},
+		cli.BoolFlag{
+			Name:  "debug",
+			Usage: "show debug log",
 		},
 	}
 
 
 	// COMMANDS
-	app.Commands = []cli.Command{
+	Cli.Commands = []cli.Command{
 
 		{// REMOVE
-			Name:    "remove",
+			Name:    COM_REMOVE,
 			Aliases: []string{"rm", "r"},
 			Usage:   "remove jobs ",
 			UsageText: "Example: \n" +
-				"\t\tshlac rm -i <job id>\n" +
+				"\t\tshlac rm <job id>\n" +
 				"\t\tshlac rm --all",
 
 			Flags: 	[]cli.Flag{
@@ -110,30 +154,18 @@ func main(){
 					Name:  "all,purge",
 					Usage: "remove all jobs",
 				},
-				cli.StringFlag{
-					Name:  "id,i",
-					Usage: "remove job by id",
-				},
 			},
 
 			Action:  func(c *cli.Context) error {
 
-				// Override config
-				if confFile := c.GlobalString("config"); confFile != ""{
-					ConfigPaths = []string{confFile}
-				}
+				if c.Bool("all"){
+					Application.Purge()
 
-				connection := connect( loadConfig(ConfigPaths) )
-				defer func(){
-					connection.Write([]byte(`\q`))
-					connection.Close()
-				}()
+				}else if jobId := c.Args().Get(0); jobId != ""{
+					Application.Remove(jobId)
 
-				if jobId := c.String("id"); jobId != ""{
-					remove(jobId)
-
-				}else if c.Bool("all"){
-					purge()
+				}else{
+					panic(ErrCmdArgs)
 				}
 
 				return nil
@@ -141,26 +173,21 @@ func main(){
 		},
 
 		{// PURGE
-			Name:    "purge",
+			Name:    COM_PURGE,
 			Usage:   "remove all jobs ",
 			UsageText: "Example: " +
 				"shlac purge",
 
 			Action:  func(c *cli.Context) error {
 
-				// Override config
-				if confFile := c.GlobalString("config"); confFile != ""{
-					ConfigPaths = []string{confFile}
-				}
-
-				purge()
+				Application.Purge()
 
 				return nil
 			},
 		},
 
 		{// IMPORT
-			Name:    "import",
+			Name:    COM_IMPORT,
 			Aliases: []string{"i"},
 			Usage:   "import jobs from cron-formatted file",
 			UsageText: "Example: " +
@@ -187,22 +214,17 @@ func main(){
 					panic(ErrCmdArgs)
 				}
 
-				// Override config
-				if confFile := c.GlobalString("config"); confFile != ""{
-					ConfigPaths = []string{confFile}
-				}
-
 				// clean table before import
-				if c.Bool("purge"){ purge() }
+				if c.Bool("purge"){ Application.Purge() }
 
-				Import(filePath, !c.Bool("skip-check"))
+				Application.Import(filePath, !c.Bool("skip-check"))
 
 				return nil
 			},
 		},
 
 		{// ADD JOB
-			Name:    "add",
+			Name:    COM_ADD,
 			Aliases: []string{"a"},
 			Usage:   "add job from cron-formatted line",
 			UsageText: "Example: " +
@@ -222,19 +244,14 @@ func main(){
 					panic(ErrCmdArgs)
 				}
 
-				// Override config
-				if confFile := c.GlobalString("config"); confFile != ""{
-					ConfigPaths = []string{confFile}
-				}
-
-				ImportLine(cronString, !c.Bool("skip-check"))
+				Application.ImportLine(cronString, !c.Bool("skip-check"))
 
 				return nil
 			},
 		},
 
 		{// EXPORT
-			Name:    "export",
+			Name:    COM_EXPORT,
 			Aliases: []string{"e"},
 			Usage:   "export jobs to file in cron-format",
 			UsageText: "Example: \n" +
@@ -252,13 +269,8 @@ func main(){
 			},
 			Action:  func(c *cli.Context) error {
 
-				// Override config
-				if confFile := c.GlobalString("config"); confFile != ""{
-					ConfigPaths = []string{confFile}
-				}
-
-				exportOptions   := ExportOpt{ShowId:c.Bool("show-id")}
-				exportedData    := Export(exportOptions)
+				exportOptions   := shlac.ExportOpt{ShowId:c.Bool("show-id")}
+				exportedData    := Application.Export(exportOptions)
 
 
 				if exportFile := c.String("file"); exportFile != ""{
@@ -273,95 +285,11 @@ func main(){
 		},
 	}
 
-	app.Run(os.Args)
+	Cli.Run(os.Args)
 }
 
 
-func Export(options ExportOpt) string{
-
-	response := sendCommand(`\l`) // send command and read answer
-
-	response = response[:len(response)-4] // remove terminal bytes
-
-	if !options.ShowId{
-		re := regexp.MustCompile(`(?m)^.+?\s+`) // remove jobs id
-		response = re.ReplaceAll(response, []byte{})
-
-	}else{
-
-		matches := regexp.MustCompile(`(?m)^(.+?\s)([0-9,\/*-LW#]+\s+){5,7}(.+)$`).FindAllSubmatchIndex(response, -1)
-
-		for i := range matches{
-
-			response = append(response, response[matches[i][3]:matches[i][7]]...)
-			response = append(response, []byte(" # ")...)
-			response = append(response, response[:matches[i][3]]...)
-		}
-	}
-
-	return string(response)
-}
-
-func Import(filePath string, checkDuplicates bool){
-
-	file, err := os.Open(filePath)
-	if err != nil {
-		panic(err)
-	}
-	defer file.Close()
-
-	scanner     := bufio.NewScanner(file)
-
-	for scanner.Scan() {
-
-		ImportLine(scanner.Text(), checkDuplicates)
-
-		// MAIN LOOP
-	}
-
-	if err := scanner.Err(); err != nil {
-		panic(err)
-	}
-
-}
-
-func ImportLine(cronString string, checkDuplicates bool){
-
-	var importLine string
-
-	if cronString == "\n"{
-		importLine = cronString
-
-	}else{
-		re := regexp.MustCompile(`^([0-9,\/*-LW#]+\s+){5,7}(.+)$`)
-		matches := re.FindStringSubmatchIndex(cronString)
-
-		cronLine    := strings.Trim( cronString[:matches[4]], " \t" )
-		commandLine := strings.Trim( cronString[matches[4]:], " \t" )
-
-		importLine = fmt.Sprintf(`\a -cron "%s" -cmd %q`, cronLine, commandLine)
-
-		if cronLine[:1] == `#`{
-			fmt.Printf("SKIPP (disabled)>> %s\n", importLine)
-			return
-		}
-
-		if checkDuplicates && isDuplicated(cronString){
-			fmt.Printf("SKIPP (duplicated)>> %s\n", importLine)
-			return
-		}
-
-
-		fmt.Printf("IMPORT>> %s\n", importLine)
-	}
-
-
-	sendCommand(importLine)
-}
-
-
-
-func loadConfig(configPaths []string) (config *Config) {
+func loadConfig(configPaths []string) *app.Config{
 
 	configRaw := func(configPaths []string) (configRaw []byte){
 
@@ -370,6 +298,7 @@ func loadConfig(configPaths []string) (config *Config) {
 			configRaw, err := ioutil.ReadFile(configPath)
 
 			if err == nil && configRaw != nil {
+				slog.DebugLn("Loaded config:", configPath)
 				return configRaw
 			}
 		}
@@ -383,83 +312,13 @@ func loadConfig(configPaths []string) (config *Config) {
 		panic(fmt.Sprint(ErrNoConfFile, configPaths))
 	}
 
-	config = &Config{}
+	config := &app.Config{}
 	if err := json.Unmarshal(configRaw, config); err != nil{
-		panic(ErrConfCorrupted)
+		panic(fmt.Sprint(ErrConfCorrupted, err))
 	}
 
 	return config
 }
 
-func connect(config *Config) (connection net.Conn){
-	if config.Client.Type != "socket" {
-		panic("Unsupported client type")
-	}
 
-	conn, err := net.Dial(config.Client.Options.Network, config.Client.Options.Address)
-	if err != nil{
-		panic(err)
-	}
 
-	return conn
-}
-
-func sendCommand(command string) (received []byte){
-
-	connection := connect( loadConfig(ConfigPaths) )
-	defer func(){
-		connection.Write([]byte(`\q`))
-		connection.Close()
-	}()
-
-	flushConnection(connection) // clear socket buffer
-
-	connection.Write([]byte(command+"\n"))
-
-	received = flushConnection(connection)
-
-	return received
-}
-
-func flushConnection(connection net.Conn) (flushed []byte){
-
-	bufSize := 256
-	buf := make([]byte, bufSize)
-
-	for{
-		n,e := connection.Read(buf)
-
-		flushed = append(flushed, buf[:n]...)
-
-		if e != nil || n < bufSize {break}
-	}
-
-	return flushed
-}
-
-func purge(){
-	sendCommand(`\r --all`)
-}
-
-func remove(jobId string){
-	sendCommand(`\r -id `+jobId)
-}
-
-func isDuplicated(cronLine string) bool {
-
-	connection := connect( loadConfig(ConfigPaths) )
-	defer func(){
-		connection.Write([]byte(`\q`))
-		connection.Close()
-	}()
-
-	cronLine = strings.Replace(cronLine, `"`, `\"`, -1)
-
-	flushConnection(connection)
-	connection.Write([]byte(`\g -c "` +cronLine+ `"`))
-
-	response := make([]byte, 8)
-	connection.Read(response)
-
-	return !bytes.Equal(response, []byte{110, 117, 108, 108, 0, 10, 62, 62})
-}

@@ -3,7 +3,7 @@ package executor
 import (
 	"os/exec"
 	"sync"
-	"shlacd/hrontabd"
+	"shlacd/app/api"
 )
 
 type localExecutor struct {
@@ -11,11 +11,11 @@ type localExecutor struct {
 	silent  bool
 	async   bool
 
-	onStart         []func(jobs []hrontabd.Job, err error)
-	onComplete      []func(jobs []hrontabd.Job, err error)
+	onStart         []func(jobs []api.Job, err error)
+	onComplete      []func(jobs []api.Job, err error)
 
-	onItemStart     []func(job hrontabd.Job, err error, out []byte) bool // if skip on false
-	onItemComplete  []func(job hrontabd.Job, err error, out []byte)
+	onItemStart     []func(job api.Job, err error, out []byte) bool // if skip on false
+	onItemComplete  []func(job api.Job, err error, out []byte)
 }
 
 
@@ -26,7 +26,7 @@ func NewExecutorLocal(silent, async bool) *localExecutor{
 
 
 // execute list of jobs
-func (a *localExecutor)Exec(jobs ...hrontabd.Job) (outs [][]byte, errs []error){
+func (a *localExecutor)Exec(jobs ...api.Job) (outs [][]byte, errs []error){
 
 	var err error
 	var out []byte
@@ -38,7 +38,7 @@ func (a *localExecutor)Exec(jobs ...hrontabd.Job) (outs [][]byte, errs []error){
 
 
 	wg := &sync.WaitGroup{}
-	run := func(job hrontabd.Job, wg *sync.WaitGroup){
+	run := func(job api.Job, wg *sync.WaitGroup){
 		wg.Add(1)
 
 		out, err = a.ExecItem(job, wg)
@@ -69,7 +69,7 @@ func (a *localExecutor)Exec(jobs ...hrontabd.Job) (outs [][]byte, errs []error){
 }
 
 
-func (a *localExecutor)ExecItem(job hrontabd.Job, wg *sync.WaitGroup) (out []byte, err error){
+func (a *localExecutor)ExecItem(job api.Job, wg *sync.WaitGroup) (out []byte, err error){
 
 	// on item start
 	for _,f := range a.onItemStart {
@@ -98,8 +98,8 @@ func (a *localExecutor)ExecItem(job hrontabd.Job, wg *sync.WaitGroup) (out []byt
 }
 
 
-func (a *localExecutor)OnStart(f ...func(jobs []hrontabd.Job, err error)){ a.onStart = f }
-func (a *localExecutor)OnComplete(f ...func(jobs []hrontabd.Job, err error)){ a.onComplete = f }
+func (a *localExecutor)OnStart(f ...func(jobs []api.Job, err error))    { a.onStart = f }
+func (a *localExecutor)OnComplete(f ...func(jobs []api.Job, err error)) { a.onComplete = f }
 
-func (a *localExecutor)OnItemStart(f ...func(job hrontabd.Job, err error, out []byte) bool){ a.onItemStart = f }
-func (a *localExecutor)OnItemComplete(f ...func(job hrontabd.Job, err error, out []byte)){ a.onItemComplete = f }
+func (a *localExecutor)OnItemStart(f ...func(job api.Job, err error, out []byte) bool) { a.onItemStart = f }
+func (a *localExecutor)OnItemComplete(f ...func(job api.Job, err error, out []byte))   { a.onItemComplete = f }

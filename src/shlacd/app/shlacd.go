@@ -1,16 +1,16 @@
-package main
+package app
 
 import (
 	"log"
 	"os"
 	"time"
 	"fmt"
-	"shlacd/hrontabd/Tab"
-	"shlacd/hrontabd"
 	"shlacd/executor"
 	"shlacd/storage"
 	"shlacd/client"
-	. "shared/config"
+	"shlacd/app/Tab"
+	. "shared/config/app"
+	. "shlacd/app/api"
 )
 
 
@@ -19,17 +19,17 @@ type app struct{
 	//Api API
 	Conf Config
 
-	Tab hrontabd.TimeTable
-	Exe hrontabd.Executor
+	Tab TimeTable
+	Exe Executor
 
 	Client client.Handler
 }
 
 
-func CreateApp(AppConfig Config) *app {
+func New(AppConfig Config) *app {
 
 	application := &app{}
-	application.Tab     = hrontabd.TimeTable( Tab.New( storage.Resolve(AppConfig.Storage) ))
+	application.Tab     = TimeTable( Tab.New( storage.Resolve(AppConfig.Storage) ))
 	application.Exe     = executor.Resolve(AppConfig.Executor)
 	application.Client  = client.Resolve(AppConfig.Client)
 
@@ -72,7 +72,7 @@ func (app *app) runHrend(){
 
 		if found := app.Tab.ListJobs(); len(found)>0{
 
-			go func(jobs []hrontabd.Job){
+			go func(jobs []Job){
 
 				for _, job := range jobs{
 
@@ -87,15 +87,15 @@ func (app *app) runHrend(){
 
 					timeInterval := time.Since(JTS).Seconds()
 					if timeInterval >0 && timeInterval <60{
-						log.Println("[hrontabd] Pulling job:", job.Id())
+						log.Println("[app] Pulling job:", job.Id())
 						if j := app.Tab.PullJob(job.Id()); j != nil{
 
-							log.Println("[hrontabd] Job started:", j.Id())
+							log.Println("[app] Job started:", j.Id())
 							app.Exe.Exec(job)
 							app.Tab.PushJob(job)
 
 						}else{
-							log.Println("[hrontabd] Pulling job: skip (Can't pull job)", job.Id())
+							log.Println("[app] Pulling job: skip (Can't pull job)", job.Id())
 
 						}
 					}

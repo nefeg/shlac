@@ -1,11 +1,11 @@
 package client
 
 import (
-	"shlacd/hrontabd"
+	"shlacd/app/api"
 )
 
 type Handler interface {
 
-	Handle(Tab hrontabd.TimeTable)
+	Handle(Tab api.TimeTable)
 }
 

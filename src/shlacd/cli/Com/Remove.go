@@ -1,7 +1,7 @@
 package Com
 
 import (
-	"shlacd/hrontabd"
+	"shlacd/app/api"
 	"fmt"
 	"flag"
 	"errors"
@@ -17,7 +17,7 @@ const usageRm = "usage: \n" +
 	"\t  rm (\\r) --all \n" +
 	"\t  rm (\\r) --help\n"
 
-func (c *Remove)Exec(Tab hrontabd.TimeTable, args []string)  (response string, err error){
+func (c *Remove)Exec(Tab api.TimeTable, args []string)  (response string, err error){
 
 	defer func(response *string, err *error){
 		if r := recover(); r!=nil{

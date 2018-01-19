@@ -1,10 +1,10 @@
 package Com
 
 import (
-	"shlacd/hrontabd"
+	"shlacd/app/api"
 	"fmt"
 	"flag"
-	"shlacd/hrontabd/Job"
+	"shlacd/app/Job"
 	"errors"
 	"log"
 	"github.com/satori/go.uuid"
@@ -19,7 +19,7 @@ const usageAdd =
 	"\t\\a --help\n"
 
 
-func (c *Add)Exec(Tab hrontabd.TimeTable, args []string)  (response string, err error){
+func (c *Add)Exec(Tab api.TimeTable, args []string)  (response string, err error){
 
 	defer func(response *string, err *error){
 		if r := recover(); r!=nil{

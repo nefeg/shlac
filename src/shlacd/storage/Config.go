@@ -2,7 +2,7 @@ package storage
 
 import (
 	"log"
-	"shlacd/hrontabd"
+	"shlacd/app/api"
 	"shlacd/storage/redis"
 )
 
@@ -18,7 +18,7 @@ type Config struct {
 	} `json:"options"`
 }
 
-func Resolve(conf Config) (storage hrontabd.Storage){
+func Resolve(conf Config) (storage api.Storage){
 
 	switch conf.Type {
 	case "redis":
