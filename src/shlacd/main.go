@@ -13,6 +13,8 @@ import (
 
 var App Application
 
+const USAGE = "*** Usage: shlacd <path/to/config/file> ***"
+
 func init()  {
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
@@ -29,8 +31,17 @@ func init()  {
 func main(){
 	log.Println("Starting...")
 
+	defer func(){
+
+		log.Println(USAGE)
+
+		if r := recover(); r != nil{
+			log.Fatal(r)
+		}
+	}()
+
 	if len(os.Args) < 2{
-		log.Fatal("Expected path to config file")
+		panic("Exit: Expected path to config file")
 	}
 
 	AppConfig := Config{}
