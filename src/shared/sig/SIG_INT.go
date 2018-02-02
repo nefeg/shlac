@@ -23,7 +23,9 @@ func SIG_INT(callback func()){
 
 		log.Println("Received termination signal:", ErrSigINT)
 
-		callback()
+		if callback != nil{
+			callback()
+		}
 
 		os.Exit(0)
 	}()

@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"os"
 	"bufio"
+	"github.com/umbrella-evgeny-nefedkin/slog"
 )
 
 
@@ -88,6 +89,7 @@ func (s *shlac) ImportLine(cronString string, checkDuplicates bool){
 		commandLine := strings.Trim( cronString[matches[4]:], " \t" )
 
 		importLine = fmt.Sprintf(`\a -cron "%s" -cmd %q`, cronLine, commandLine)
+		slog.DebugLn("[app] ImportLine: ", importLine)
 
 		if cronLine[:1] == `#`{
 			fmt.Printf("SKIPP (disabled)>> %s\n", importLine)
@@ -119,9 +121,20 @@ func (s *shlac) Remove(jobId string){
 
 func (s *shlac) isDuplicated(cronLine string) bool {
 
+	slog.DebugF("[app.shlac] isDuplicated (cronLine): `%s`\n", cronLine)
+
 	cronLine = strings.Replace(cronLine, `"`, `\"`, -1)
+
+	slog.DebugF("[app.shlac] isDuplicated (cronLine,normalized): `%s`\n", cronLine)
 
 	response := s.sender.Send(`\g -c "` +cronLine+ `"`)
 
-	return !bytes.Equal(response[:8], []byte{110, 117, 108, 108, 0, 10, 62, 62})
+	slog.DebugLn("[app.shlac] isDuplicated (response,raw): ", response)
+	slog.DebugF("[app.shlac] isDuplicated (response,string): `%s`\n", string(response))
+
+	r := !bytes.Equal(response[:4], []byte{0, 10, 62, 62})
+
+	slog.DebugLn("[app.shlac] isDuplicated (result): ", r)
+
+	return r
 }

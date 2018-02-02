@@ -28,7 +28,7 @@ func (c *Get) Exec(Tab api.TimeTable, args []string)  (response string, err erro
 
 	}(&response, &err)
 
-	var defaultResponse = "null"
+	var defaultResponse = ""
 
 	var HELP, HLP, BYCMD bool
 

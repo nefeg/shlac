@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	. "shared/config/app"
 	shlacd "shlacd/app"
+	"github.com/umbrella-evgeny-nefedkin/slog"
 )
 
 var App Application
@@ -19,17 +20,22 @@ func init()  {
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
+	slog.SetLevel(slog.LvlInfo)
+	slog.SetFormat(slog.FormatTimed)
+
 	sig.SIG_INT(func(){
 		log.Println("Terminateing application...")
 		// panic(sig.ErrSigINT)
 
-		Application.Stop(App, 1, sig.ErrSigINT)
+		if App != nil{ // check for application is instantiated
+			Application.Stop(App, 1, sig.ErrSigINT)
+		}
 	})
 }
 
 
 func main(){
-	log.Println("Starting...")
+	slog.DebugLn("Starting...")
 
 	defer func(){
 
@@ -44,10 +50,13 @@ func main(){
 		panic("Exit: Expected path to config file")
 	}
 
-	AppConfig := Config{}
+	slog.DebugLn("[main] Loading config")
+	AppConfig := &Config{}
 	if config, err := ioutil.ReadFile(os.Args[1]); err == nil{
-		json.Unmarshal(config, &AppConfig)
+		json.Unmarshal(config, AppConfig)
 	}
+	slog.DebugLn("[main] Loaded config: ", AppConfig)
+
 
 	App = Application( shlacd.New(AppConfig) )
 	App.Run()

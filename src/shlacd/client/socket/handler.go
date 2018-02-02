@@ -55,7 +55,7 @@ func (h *handler) Handle(Tab api.TimeTable){
 			}()
 
 		}else{
-			log.Println(err.Error())
+			log.Println(logPrefix, err.Error())
 			continue
 		}
 	}
@@ -90,7 +90,7 @@ func (h *handler)handleConnection(Connection net.Conn, Tab api.TimeTable){
 		if rcv, err := readData(Connection); rcv != ""{
 
 			if err != nil {
-				log.Println(err.Error())
+				log.Println(logPrefix, err.Error())
 				response = err.Error()
 
 			}else{

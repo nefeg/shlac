@@ -63,7 +63,7 @@ func main(){
 
 
 	Cli := cli.NewApp()
-	Cli.Version             = "0.1"
+	Cli.Version             = "0.2"
 	Cli.Name                = "ShLAC"
 	Cli.Usage               = "[SH]lac [L]ike [A]s [C]ron"
 	Cli.Author              = "Evgeny Nefedkin"
@@ -109,7 +109,7 @@ func main(){
 			slog.SetLevel(slog.LvlDebug)
 		}
 
-		slog.DebugLn("Config paths:", ConfigPaths)
+		slog.DebugLn("[main->Cli.Before] Config paths:", ConfigPaths)
 
 		AppConfig := loadConfig(ConfigPaths)
 

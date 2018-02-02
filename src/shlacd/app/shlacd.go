@@ -11,6 +11,7 @@ import (
 	"shlacd/app/Tab"
 	. "shared/config/app"
 	. "shlacd/app/api"
+	"github.com/umbrella-evgeny-nefedkin/slog"
 )
 
 
@@ -26,7 +27,7 @@ type app struct{
 }
 
 
-func New(AppConfig Config) *app {
+func New(AppConfig *Config) *app {
 
 	application := &app{}
 	application.Tab     = TimeTable( Tab.New( storage.Resolve(AppConfig.Storage) ))
@@ -51,6 +52,9 @@ func (app *app) Run(){
 		app.Stop(code, message)
 	}()
 
+	slog.DebugLn("[app] Run")
+
+
 	go app.runHrend() // todo remove old jobs
 
 	app.Client.Handle(app.Tab)
@@ -67,7 +71,12 @@ func (app *app) Stop(code int, message interface{}){
 
 func (app *app) runHrend(){
 
+	slog.DebugLn("[app->core] fork")
+
 	for{
+
+		slog.DebugLn("\n**** [app->core] new loop: ", time.Now().String())
+
 		var timeout time.Duration = 60
 
 		if found := app.Tab.ListJobs(); len(found)>0{
@@ -76,14 +85,14 @@ func (app *app) runHrend(){
 
 				for _, job := range jobs{
 
-					FromTime := time.Now()
+					FromTime := time.Now().Add(-1*time.Minute)
 					JTS := job.TimeStart( FromTime )
 
-					//log.Println("-------------", job.CronLine(), job.Id())
-					//log.Println("now", time.Now().String())
-					//log.Println("must", JTS.String())
-					//log.Println("since", time.Since(JTS))
-					//log.Println("-------------")
+					slog.DebugLn("-------------", job.CronLine(), job.Id())
+					slog.DebugLn("now", time.Now().String())
+					slog.DebugLn("now-1 (fromTime)", FromTime.String())
+					slog.DebugLn("must run", JTS.String())
+					slog.DebugLn("diff", time.Since(JTS))
 
 					timeInterval := time.Since(JTS).Seconds()
 					if timeInterval >0 && timeInterval <60{
