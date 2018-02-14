@@ -54,14 +54,14 @@ func NewComImport(context *Context) cli.Command {
 			// Import from file
 			if path := c.String("file"); path != "" {
 
-				slog.DebugF("[cli.import] Source: file\n")
+				slog.Debugf("[cli.import] Source: file\n")
 
 				if source, err := os.Open(path); err == nil {
 					// !get cron-lines
 					records = scan(source)
 					source.Close()
 				}else{
-					slog.DebugF("[cli.import] Source error: %s", err)
+					slog.Debugf("[cli.import] Source error: %s", err)
 					return err
 				}
 
@@ -73,7 +73,7 @@ func NewComImport(context *Context) cli.Command {
 			}else {
 				// check COMMAND ARGS
 				cronLine := strings.Join(c.Args(), " ")
-				slog.DebugF("[cli.import] cron-line: `%s`\n", cronLine)
+				slog.Debugf("[cli.import] cron-line: `%s`\n", cronLine)
 
 				if cronLine != "" { // import from args
 					records = append(records, cronLine)
@@ -88,7 +88,7 @@ func NewComImport(context *Context) cli.Command {
 			if len(records) == 0 {
 				c.App.Writer.Write([]byte("Interactive mode\nPress ^D(Ctrl-D) for end or ^C(Ctrl-C) for halt program\n"))
 
-				slog.DebugF("[cli.import] Source: stdin\n")
+				slog.Debugf("[cli.import] Source: stdin\n")
 
 				// !get cron-lines
 				var source io.Reader = os.Stdin

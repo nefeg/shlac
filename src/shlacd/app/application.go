@@ -1,7 +1,6 @@
 package app
 
 import (
-	"log"
 	"os"
 	"time"
 	"fmt"
@@ -41,7 +40,7 @@ func (app *application) Run(){
 		code    := 0
 		message := "no message"
 		if r:= recover(); r!=nil{
-			log.Println(r)
+			slog.Infoln(r)
 			code = 1
 			message = fmt.Sprint(r)
 		}
@@ -49,7 +48,7 @@ func (app *application) Run(){
 		app.Stop(code, message)
 	}()
 
-	slog.DebugLn("[app] Run")
+	slog.Debugln("[app] Run")
 
 
 	app.runHrend() // todo remove old jobs
@@ -59,18 +58,18 @@ func (app *application) Stop(code int, message interface{}){
 
 	app.table.Close()
 
-	log.Printf("*** Application terminated with message: %s\n\n", message)
+	slog.Infof("*** Application terminated with message: %s\n\n", message)
 
 	os.Exit(code)
 }
 
 func (app *application) runHrend(){
 
-	slog.DebugLn("[app->core] fork")
+	slog.Debugln("[app->core] fork")
 
 	for{
 
-		slog.DebugLn("\n**** [app->core] new loop: ", time.Now().String())
+		slog.Debugln("\n**** [app->core] new loop: ", time.Now().String())
 
 		var timeout time.Duration = 60
 
@@ -83,23 +82,25 @@ func (app *application) runHrend(){
 					FromTime := time.Now().Add(-1*time.Minute)
 					JTS := job.TimeStart( FromTime )
 
-					slog.DebugLn("-------------", job.TimeLine(), job.Index())
-					slog.DebugLn("now: ", time.Now().String())
-					slog.DebugLn("now-1 (fromTime): ", FromTime.String())
-					slog.DebugLn("must run: ", JTS.String())
-					slog.DebugLn("diff: ", time.Since(JTS))
+					slog.Debugf("######## `%s` ########\n", job.String())
+					slog.Debugln("now: ", time.Now().String())
+					slog.Debugln("now-1 (fromTime): ", FromTime.String())
+					slog.Debugln("must run: ", JTS.String())
+					slog.Debugln("diff: ", time.Since(JTS))
+					slog.Debugln("--------------------------")
+
 
 					timeInterval := time.Since(JTS).Seconds()
 					if timeInterval >0 && timeInterval <60{
-						log.Println("[app] Pulling Job:", job.Index())
-						if j := app.table.PullJob(job); j != nil{
+						slog.Infoln("[app] Pulling Job:", job.Index())
+						if j,e := app.table.PullJob(job); e == nil{
 
-							log.Println("[app] Job started:", j.Index())
+							slog.Infoln("[app] Job started:", j.Index())
 							app.executor.Exec(job)
 							app.table.PushJob(job)
 
 						}else{
-							log.Println("[app] Pulling Job: skip (Can't pull Job)", job.Index())
+							slog.Infoln("[app] Pulling Job: skip (Can't pull Job)", job.Index())
 
 						}
 					}

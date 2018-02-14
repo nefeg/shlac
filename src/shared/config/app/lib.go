@@ -12,7 +12,7 @@ var ErrConfCorrupted    = errors.New("ERR: invalid config data")
 
 func LoadConfig(configPaths []string) *Config{
 
-	slog.DebugLn("[shared.config.app.lib] ", "Handle log paths: ", configPaths)
+	slog.Debugln("[shared.config.app.lib] ", "Handle log paths: ", configPaths)
 
 	configRaw := func(configPaths []string) (configRaw []byte){
 
@@ -21,7 +21,7 @@ func LoadConfig(configPaths []string) *Config{
 			configRaw, err := ioutil.ReadFile(configPath)
 
 			if err == nil && configRaw != nil {
-				slog.DebugLn("[shared.config.app.lib] ", "Loaded config: ", configPath)
+				slog.Debugln("[shared.config.app.lib] ", "Loaded config: ", configPath)
 				return configRaw
 			}
 		}

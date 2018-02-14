@@ -1,7 +1,6 @@
 package client
 
 import (
-	"log"
 	"github.com/umbrella-evgeny-nefedkin/slog"
 	"shlacd/client/socket"
 	"shared/config/addr"
@@ -27,12 +26,12 @@ func Resolve(conf Config) (client Handler){
 				Address:conf.Options.Address,
 			}
 
-			slog.DebugF("[client.config] Resolve: socket [%s]\n", connection)
+			slog.Debugf("[client.config] Resolve: socket [%s]\n", connection)
 
 			client = Handler( socket.NewHandler( connection ))
 
 		default:
-			log.Fatalln("[client.config]Resolve(panic): Unknown client type: ", conf.Type)
+			slog.Fatalln("[client.config]Resolve(panic): Unknown client type: ", conf.Type)
 	}
 
 	return client

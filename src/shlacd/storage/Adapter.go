@@ -13,7 +13,7 @@ type Adapter interface {
 	List() (data map[string]string)
 
 	Lock(index string) bool
-	UnLock(index string)
+	UnLock(index string) bool
 
 	Version() (version string)
 	Flush()

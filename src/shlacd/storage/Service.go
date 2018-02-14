@@ -24,7 +24,7 @@ func (s service)Add(job api.Job, force bool) (api.Job, error){
 	if job.Index() == ""{
 		if uid, err := uuid.NewV4(); err == nil{
 			job.IndexX( uid.String() )
-			slog.DebugLn("[storage.redis -> Add] Generated index: ", job.Index())
+			slog.Debugln("[storage.redis -> Add] Generated index: ", job.Index())
 
 		}else{
 			panic(err)
@@ -64,7 +64,7 @@ func (s service)List() []api.Job{
 		for _, jobRecord := range records{
 			job := Job.New("")
 			if e := job.UnSerialize(jobRecord); e != nil{
-				slog.DebugF("[storage.Service -> List] Skipped: ", e)
+				slog.Debugf("[storage.Service -> List] Skipped: ", e)
 				continue
 			}
 			jobList = append(jobList, job)
@@ -79,8 +79,8 @@ func (s service)Lock(job api.Job) bool{
 	return s.adapter.Lock(job.Index())
 }
 
-func (s service)UnLock(job api.Job){
-	s.adapter.UnLock(job.Index())
+func (s service)UnLock(job api.Job) bool{
+	return s.adapter.UnLock(job.Index())
 }
 
 func (s service)Flush(){

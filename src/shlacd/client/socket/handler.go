@@ -3,7 +3,6 @@ package socket
 import (
 	"net"
 	"io"
-	"log"
 	"os"
 	capi "shlacd/cli"
 	"github.com/umbrella-evgeny-nefedkin/slog"
@@ -34,9 +33,9 @@ func (h *handler) Handle(ctx capi.Context){
 
 	IPC, err := net.Listen(h.addr.Network(), h.addr.String())
 	if err != nil {
-		log.Panicf("%s: %s", "ERROR", err.Error())
+		slog.Panicf("%s: %s", "ERROR", err.Error())
 	}else{
-		log.Printf(logPrefix + "Listen: %s://%s", IPC.Addr().Network(), IPC.Addr().String())
+		slog.Infof(logPrefix + "Listen: %s://%s", IPC.Addr().Network(), IPC.Addr().String())
 	}
 	defer func(){
 		IPC.Close()
@@ -49,16 +48,16 @@ func (h *handler) Handle(ctx capi.Context){
 		if Connection, err := IPC.Accept(); err == nil {
 
 			go func(){
-				log.Printf(logPrefix + "New client connection accepted [connid:%v]", Connection)
+				slog.Infof(logPrefix + "New client connection accepted [connid:%v]", Connection)
 
 				h.handleConnection(Connection, ctx)
 				Connection.Close()
 
-				log.Printf(logPrefix + "Client connection closed [connid:%v]", Connection)
+				slog.Infof(logPrefix + "Client connection closed [connid:%v]", Connection)
 			}()
 
 		}else{
-			log.Println(logPrefix, err.Error())
+			slog.Infoln(logPrefix, err.Error())
 			continue
 		}
 	}
@@ -76,14 +75,14 @@ func (h *handler)handleConnection(Connection net.Conn, ctx capi.Context){
 			if r == io.EOF {
 				*response = "client socket closed."
 				Responder.WriteString("\n" + (*response) + "\n")
-				slog.InfoLn(logPrefix + "Session closed by cause: " + (*response))
+				slog.Infoln(logPrefix + "Session closed by cause: " + (*response))
 
 			}else{
-				slog.InfoLn(logPrefix + "Session closed by cause: " , r)
+				slog.Infoln(logPrefix + "Session closed by cause: " , r)
 			}
 		}else{
 			Responder.WriteString("\n" + (*response) + "\n")
-			slog.InfoLn(logPrefix + "Session closed by cause: " + (*response))
+			slog.Infoln(logPrefix + "Session closed by cause: " + (*response))
 		}
 	}(&response)
 
@@ -99,6 +98,7 @@ func (h *handler)handleConnection(Connection net.Conn, ctx capi.Context){
 	Cli.Commands = []cli.Command{
 		capi.NewComAdd(&ctx),
 		capi.NewComExport(&ctx),
+		capi.NewComImport(&ctx),
 		capi.NewComRemove(&ctx),
 		capi.NewComPurge(&ctx),
 		capi.NewComGet(&ctx),
@@ -110,7 +110,7 @@ func (h *handler)handleConnection(Connection net.Conn, ctx capi.Context){
 
 			Action:  func(c *cli.Context) error {
 
-				slog.DebugLn("Action: exit")
+				slog.Debugln("Action: exit")
 
 				c.App.Writer.Write([]byte("Sending <QUIT> signal..."))
 				panic(ErrConnectionClosed)
@@ -129,7 +129,7 @@ func (h *handler)handleConnection(Connection net.Conn, ctx capi.Context){
 
 	Cli.ExitErrHandler = func(c *cli.Context, err error){
 		c.App.Writer.Write([]byte(err.Error()))
-		slog.DebugLn(logPrefix, err)
+		slog.Debugln(logPrefix, err)
 	}
 
 
@@ -139,25 +139,25 @@ func (h *handler)handleConnection(Connection net.Conn, ctx capi.Context){
 		if rcb, err := Responder.ReadData(); len(rcb) != 0{
 
 			if err != nil {
-				slog.CritLn(err.Error())
+				slog.Critln(err.Error())
 				response = err.Error()
 				Responder.WriteString(response)
 
 			}else{
 
-				slog.DebugLn(logPrefix, "Args (byte,raw):", rcb)
-				slog.DebugLn(logPrefix, "Args (string,raw):", string(rcb))
+				slog.Debugln(logPrefix, "Args (byte,raw):", rcb)
+				slog.Debugln(logPrefix, "Args (string,raw):", string(rcb))
 
 				if match,_ := regexp.Match(`^\w.*`, rcb); match != true{
 					rcb = []byte("help")
-					slog.DebugLn(logPrefix, "Incorrect args, show help")
+					slog.Debugln(logPrefix, "Incorrect args, show help")
 				}
 
 				args,_ := shellwords.Parse("self " + string(rcb))
 
 				Cli.Run( args )
 
-				slog.DebugLn(logPrefix, "Cli.Run (complete)")
+				slog.Debugln(logPrefix, "Cli.Run (complete)")
 			}
 		}
 	}

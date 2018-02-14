@@ -1,8 +1,8 @@
 package executor
 
 import (
-	"log"
 	"shlacd/app/api"
+	"github.com/umbrella-evgeny-nefedkin/slog"
 )
 
 // executor config
@@ -24,7 +24,7 @@ func Resolve(conf Config) (exe api.Executor){
 		exe = NewExecutorLocal(conf.Options.Silent, conf.Options.Async)
 
 	default:
-		log.Panicln("Unknown client type")
+		slog.Panicln("Unknown client type")
 	}
 
 	return exe

@@ -48,7 +48,7 @@ func main(){
 	defer func(a *capi.Context){
 		if r := recover(); r != nil{
 
-			slog.DebugLn("[main->defer] ", r)
+			slog.Debugln("[main->defer] ", r)
 
 			if r == ErrCmdArgs || r == shared.ErrNoConfFile{
 				fmt.Println(r)
@@ -75,24 +75,24 @@ func main(){
 		// debug flag
 		if c.GlobalBool(FL_DEBUG){
 			slog.SetLevel(slog.LvlDebug)
-			slog.DebugLn("[main] os.Args: ", os.Args)
+			slog.Debugln("[main] os.Args: ", os.Args)
 		}
 
 		// Override config
 		if confFile := c.GlobalString("config"); confFile != ""{
 			ConfigPaths = []string{confFile}
 		}
-		slog.DebugLn("[main ->Cli.Before] Config paths: ", ConfigPaths)
+		slog.Debugln("[main ->Cli.Before] Config paths: ", ConfigPaths)
 
 
 
 		mainConfig := shared.LoadConfig(ConfigPaths)
 
 		JTable := Table.New( storage.Resolve(mainConfig.Storage) )
-		slog.DebugLn("[main ->Cli.Before] JTable: ", JTable)
+		slog.Debugln("[main ->Cli.Before] JTable: ", JTable)
 
 		CliContext = capiCtx.New( JTable )
-		slog.DebugLn("[main ->Cli.Before] CliContext: ", CliContext)
+		slog.Debugln("[main ->Cli.Before] CliContext: ", CliContext)
 
 		return nil
 	}
@@ -158,7 +158,7 @@ func main(){
 //			slog.SetLevel(slog.LvlDebug)
 //		}
 //
-//		slog.DebugLn("[main->Cli.Before] Config paths:", ConfigPaths)
+//		slog.Debugln("[main->Cli.Before] Config paths:", ConfigPaths)
 //
 //		AppConfig := app.LoadConfig(ConfigPaths)
 //

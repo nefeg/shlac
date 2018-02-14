@@ -22,12 +22,12 @@ func Resolve(conf Config) (storage api.Storage){
 
 	var adapter Adapter
 
-	slog.DebugLn("[storage->Resolve] Resolving storage config...")
+	slog.Debugln("[storage->Resolve] Resolving storage config...")
 
 
 	switch conf.Type {
 	case "redis":
-		slog.DebugLn("[storage->Resolve] Resolved: `redis`")
+		slog.Debugln("[storage->Resolve] Resolved: `redis`")
 		adapter = adapters.NewRedisAdapter(conf.Options.Network, conf.Options.Address, conf.Options.Key)
 
 	case "file":
@@ -38,7 +38,7 @@ func Resolve(conf Config) (storage api.Storage){
 	}
 
 	if adapter == nil{
-		slog.PanicLn("Unknown storage adapter")
+		slog.Panicln("Unknown storage adapter")
 	}
 
 

@@ -2,7 +2,6 @@ package adapters
 
 import (
 	"github.com/mediocregopher/radix.v2/redis"
-	"log"
 	"strconv"
 	"errors"
 	"github.com/umbrella-evgeny-nefedkin/slog"
@@ -35,14 +34,14 @@ func NewRedisAdapter(network, addr, storageKey string) *storageRedis{
 
 func (f *storageRedis) Connect() (isConnected bool){
 
-	slog.InfoF("[storage.redis -> Connect] Connecting: %s://%s\n", f.network, f.addr)
+	slog.Infof("[storage.redis -> Connect] Connecting: %s://%s\n", f.network, f.addr)
 
 	if !f.isConnected(){
 
 		if conn, err := redis.Dial(f.network, f.addr) ; err == nil{
 			f.storage = conn
 		}else{
-			log.Panicln(err)
+			slog.Panicln(err)
 		}
 	}
 
@@ -51,8 +50,8 @@ func (f *storageRedis) Connect() (isConnected bool){
 	var version string
 	if version = f.Version(); version == "0" {version = f.incVersion()}
 
-	slog.InfoLn("[storage.redis -> Connect] Connected: ", f.isConnected())
-	slog.InfoLn("[storage.redis -> Connect] Version: ", version)
+	slog.Infoln("[storage.redis -> Connect] Connected: ", f.isConnected())
+	slog.Infoln("[storage.redis -> Connect] Version: ", version)
 
 	return isConnected
 }
@@ -83,7 +82,7 @@ func (f *storageRedis) Get(index string) (record string){
 
 func (f *storageRedis) Add(index string, record string, force bool) (err error){
 
-	slog.DebugF("[storage.redis -> Add] In: \n\t-- index: `%s` \n\t-- record: `%s` \n\t-- force: %v\n", index, record, force)
+	slog.Debugf("[storage.redis -> Add] In: \n\t-- index: `%s` \n\t-- record: `%s` \n\t-- force: %v\n", index, record, force)
 
 	var resp int
 
@@ -100,7 +99,7 @@ func (f *storageRedis) Add(index string, record string, force bool) (err error){
 		f.incVersion()
 	}
 
-	slog.DebugLn("[storage.redis -> Add] ", "error: ", err)
+	slog.Debugln("[storage.redis -> Add] ", "error: ", err)
 
 	return err
 }
@@ -117,7 +116,7 @@ func (f *storageRedis) Rm(index string) bool{
 		f.incVersion()
 
 	}else{
-		log.Println("[storage.redis -> Add] Pull: lock fail for", index)
+		slog.Infoln("[storage.redis -> Add] Pull: lock fail for", index)
 	}
 
 
@@ -154,7 +153,7 @@ func (f *storageRedis) incVersion() (version string){
 
 	version = strconv.Itoa(intVersion)
 
-	slog.DebugLn("[storage.redis  -> incVersion] Version: ", "update:", oldVersion,"-->",intVersion)
+	slog.Debugln("[storage.redis -> incVersion] Version: ", "update:", oldVersion,"-->",intVersion)
 
 	return version
 }
@@ -163,34 +162,37 @@ func (f *storageRedis) incVersion() (version string){
 func (f *storageRedis) Lock(index string) bool{
 
 	if index == ""{
-		slog.PanicLn("index not specified")
+		slog.Panicln("index not specified")
 	}
 
-	slog.DebugF("[storage.redis -> Lock] Command: HSETNX %s %s %d\n", f.storageLock, index, 1)
+	slog.Debugf("[storage.redis -> Lock] Command: HSETNX %s %s %d\n", f.storageLock, index, 1)
 
 	l,e := f.storage.Cmd("HSETNX", f.storageLock, index, 1).Int()
 
-	slog.DebugLn("[storage.redis -> Lock] Result: ", l==1,e)
+	slog.Debugln("[storage.redis -> Lock] Result: ", l,e)
 
 	return l==1
 }
 
-func (f *storageRedis) UnLock(index string) {
+func (f *storageRedis) UnLock(index string) bool {
 
-	slog.DebugLn("[storage.redis  -> UnLock] Command: ", "HDEL", f.storageLock, index)
+	slog.Debugln("[storage.redis -> UnLock] Command: ", "HDEL", f.storageLock, index)
 
-	f.storage.Cmd("HDEL", f.storageLock, index)
+	r,e := f.storage.Cmd("HDEL", f.storageLock, index).Int()
+	if e != nil{panic(e)}
+
+	return r == 1
 }
 
 func (f *storageRedis) pull(index string) (record string){
 
 	defer f.UnLock(index)
 
-	log.Println("[storage.redis] Pull: ", index)
+	slog.Infoln("[storage.redis] Pull: ", index)
 	if f.Lock(index){
 
 		if record,_ = f.storage.Cmd("HGET", f.storageKey, index).Str(); record == ""{
-			log.Println("[storage.redis -> pull] Pull: no data for index", index)
+			slog.Infoln("[storage.redis -> pull] Pull: no data for index", index)
 		}
 
 		f.storage.Cmd("HDEL", f.storageKey, index)
@@ -198,7 +200,7 @@ func (f *storageRedis) pull(index string) (record string){
 		f.incVersion()
 
 	}else{
-		log.Println("[storage.redis -> pull] Pull: lock fail for", index)
+		slog.Infoln("[storage.redis -> pull] Pull: lock fail for", index)
 	}
 
 	return record

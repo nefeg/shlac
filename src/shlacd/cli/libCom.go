@@ -22,7 +22,7 @@ func view(jobs []api.Job, options viewOptions) (response string){
 
 func viewItem(job api.Job, options viewOptions) (response string){
 
-	slog.InfoLn("[libCom->viewItem] ", job.String(), options)
+	slog.Infoln("[libCom->viewItem] ", job.String(), options)
 
 	response = job.String()
 

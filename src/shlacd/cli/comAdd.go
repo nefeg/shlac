@@ -46,7 +46,7 @@ func NewComAdd(context *Context) cli.Command {
 			defer func(err *error){
 				if r := recover(); r != nil{
 					*err = errors.New(fmt.Sprintf("%s", r))
-					slog.ErrLn("[cli.add] FAIL while adding job: ", newJob.Index())
+					slog.Errln("[cli.add] FAIL while adding job: ", newJob.Index())
 				}
 			}(&err)
 
@@ -80,12 +80,12 @@ func NewComAdd(context *Context) cli.Command {
 			}
 
 
-			slog.DebugLn("[cli.add] Trying add to table: ", newJob)
+			slog.Debugln("[cli.add] Trying add to table: ", newJob)
 
 			// Add job to table
 			if (*context).Add(newJob, c.Bool("force")){
 				c.App.Writer.Write( []byte(newJob.Index()) )
-				slog.InfoLn("[cli.add] Added to table: ", newJob.Index())
+				slog.Infoln("[cli.add] Added to table: ", newJob.Index())
 
 			}else{
 				panic("(*context).Add(..) return FALSE ")

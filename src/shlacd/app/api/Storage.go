@@ -10,7 +10,7 @@ type Storage interface {
 	List() []Job
 
 	Lock(job Job) bool
-	UnLock(job Job)
+	UnLock(job Job) bool
 
 	Flush()
 

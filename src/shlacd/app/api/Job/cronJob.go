@@ -3,7 +3,6 @@ package Job
 import (
 	"time"
 	"encoding/json"
-	"log"
 	"github.com/umbrella-evgeny-nefedkin/cronexpr"
 	"github.com/umbrella-evgeny-nefedkin/slog"
 	"errors"
@@ -39,11 +38,11 @@ func (c *cronJob)Index() string{
 func (c *cronJob)IndexX(index string){
 	//if c.index != "" || index == ""{
 	//	err := fmt.Sprintf("try to change id `%s` --> `%s`", c.index, index)
-	//	slog.DebugLn("[Job->IndexX] (panic): ", err)
+	//	slog.Debugln("[Job->IndexX] (panic): ", err)
 	//	panic(err)
 	//}
 
-	slog.DebugF("[Job->IndexX] try to change id `%s` --> `%s`\n", c.index, index)
+	slog.Debugf("[Job->IndexX] try to change id `%s` --> `%s`\n", c.index, index)
 
 	c.index = index
 }
@@ -58,7 +57,7 @@ func (c *cronJob)CommandX(command string) {
 
 	if command == "" || command == "\n"{
 		err := "job command can't be empty"
-		slog.DebugLn("[Job->IndexX] (panic): ", err)
+		slog.Debugln("[Job->IndexX] (panic): ", err)
 		panic(err)
 	}
 
@@ -75,7 +74,7 @@ func (c *cronJob)TimeLineX(timeLine string){
 
 	if _, e := cronexpr.Parse(timeLine); e != nil{
 		err := fmt.Sprintf("Invalid timeline format: `%s`", timeLine)
-		slog.CritF("[Job->TimeLineX] CRIT: %s\n", err)
+		slog.Critf("[Job->TimeLineX] CRIT: %s\n", err)
 		panic(err)
 	}
 
@@ -127,25 +126,25 @@ func (c *cronJob) UnmarshalJSON(b []byte) (err error) {
 // interface storage.Serializable
 func (c *cronJob) Serialize() string{
 
-	slog.DebugF("[Job->Serialize] Try to serialize Job: `%s`\n", c)
+	slog.Debugf("[Job->Serialize] Try to serialize Job: `%s`\n", c)
 
 	s, err := json.Marshal(c)
 	if err != nil{
-		log.Fatalln(err)
+		slog.Fatalln(err)
 	}
 
-	slog.DebugLn("[Job->Serialize] Done: ", string(s), err)
+	slog.Debugln("[Job->Serialize] Done: ", string(s), err)
 
 	return string(s)
 }
 
 func (c *cronJob) UnSerialize(data string) (err error){
 
-	slog.DebugF("[Job->Unserialize] Try to unserialize data: `%s`\n", data)
+	slog.Debugf("[Job->Unserialize] Try to unserialize data: `%s`\n", data)
 
 	err = json.Unmarshal([]byte(data), c)
 
-	slog.DebugLn("[Job->Unserialize] Done: ", c, err)
+	slog.Debugln("[Job->Unserialize] Done: ", c, err)
 
 	return err
 }

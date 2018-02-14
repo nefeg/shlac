@@ -8,7 +8,7 @@ type Table interface {
 
 	RmJob(job Job) bool
 
-	PullJob(job Job) Job
+	PullJob(job Job) (Job, error)
 
 	PushJob(job Job)
 

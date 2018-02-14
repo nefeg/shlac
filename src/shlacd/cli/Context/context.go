@@ -22,22 +22,27 @@ type context struct {
 
 func (c *context) Import(line string, checkDuplicates bool) (result bool) {
 
-	slog.DebugF("[cli.Context -> Import] Data: `%s`\n", line)
-	slog.DebugF("[cli.Context -> Import] checkDuplicates: `%s`\n", checkDuplicates)
+	slog.Debugf("[cli.Context -> Import] Data: `%s`\n", line)
+	slog.Debugf("[cli.Context -> Import] checkDuplicates: `%v`\n", checkDuplicates)
 
 	if line != "" && line != "\n"{
 
 		re := regexp.MustCompile(`^([0-9,\/*-LW#]+\s+){5,7}(.+)$`)
 		matches := re.FindStringSubmatchIndex(line)
 
-		slog.DebugLn("[cli.Context -> Import] matches: ", matches)
+		slog.Debugln("[cli.Context -> Import] matches: ", matches)
+
+		if len(matches) < 4{
+			slog.Debugln("[cli.Context -> Import] parse: incorrect format")
+			panic("incorrect format of imported data")
+		}
 
 
 		cronLine    := strings.Trim( line[:matches[3]], " \t" )
 		commandLine := strings.Trim( line[matches[3]:], " \t" )
 
-		slog.DebugF("[cli.Context -> Import] parsed `cronLine`: `%s`\n", cronLine)
-		slog.DebugF("[cli.Context -> Import] parsed `commandLine`: `%s`\n", commandLine)
+		slog.Debugf("[cli.Context -> Import] parsed `cronLine`: `%s`\n", cronLine)
+		slog.Debugf("[cli.Context -> Import] parsed `commandLine`: `%s`\n", commandLine)
 
 
 		importJob := Job.New("")
@@ -45,24 +50,24 @@ func (c *context) Import(line string, checkDuplicates bool) (result bool) {
 		//importJob.CommandX(fmt.Sprintf(`%q`, commandLine))
 		importJob.TimeLineX(cronLine)
 
-		slog.DebugLn("[cli.Context -> Import] Job: ", importJob)
+		slog.Debugln("[cli.Context -> Import] Job: ", importJob)
 
 		if cronLine[:1] == `#`{
-			slog.InfoF("[cli.Context -> Import] SKIPP (disabled)>> %s\n", importJob)
+			slog.Infof("[cli.Context -> Import] SKIPP (disabled)>> %s\n", importJob)
 			return
 		}
 
 		if checkDuplicates && c.isDuplicated(importJob.String()){
-			slog.InfoF("[cli.Context -> Import] SKIPP (duplicated)>> %s\n", importJob)
+			slog.Infof("[cli.Context -> Import] SKIPP (duplicated)>> %s\n", importJob)
 			return
 		}
 
-		slog.InfoF("[cli.Context -> Import] IMPORT>> %s\n", importJob)
+		slog.Infof("[cli.Context -> Import] IMPORT>> %s\n", importJob)
 
 		result = c.Add(importJob, true)
 	}
 
-	slog.DebugF("[cli.Context -> Import] Result: %v\n", result)
+	slog.Debugf("[cli.Context -> Import] Result: %v\n", result)
 
 
 	return result
@@ -101,12 +106,12 @@ func (c *context) Term(){
 
 func (c *context) isDuplicated(needle string) (r bool) {
 
-	slog.DebugF("[cli.Context -> isDuplicated] In(cronLine): `%s`\n", needle)
+	slog.Debugf("[cli.Context -> isDuplicated] In(cronLine): `%s`\n", needle)
 
 	ws := regexp.MustCompile(`\s+`)
 	needle = ws.ReplaceAllString(needle, "")
 
-	slog.DebugF("[cli.Context -> isDuplicated] Normalized: `%s`\n", needle)
+	slog.Debugf("[cli.Context -> isDuplicated] Normalized: `%s`\n", needle)
 
 
 	current := ""
@@ -114,13 +119,13 @@ func (c *context) isDuplicated(needle string) (r bool) {
 
 		current = ws.ReplaceAllString(job.String(),"")
 
-		slog.DebugF("[cli.Context -> isDuplicated] Compare (needle, current): \n\t-`%s`\n\t-`%s`\n", needle, current)
+		slog.Debugf("[cli.Context -> isDuplicated] Compare (needle, current): \n\t-`%s`\n\t-`%s`\n", needle, current)
 		if current == needle{
 			r = true
 		}
 	}
 
-	slog.DebugF("[cli.Context -> isDuplicated] Ressult: `%v`\n", r)
+	slog.Debugf("[cli.Context -> isDuplicated] Result: `%v`\n", r)
 
 	return r
 }

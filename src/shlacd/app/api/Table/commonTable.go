@@ -1,9 +1,10 @@
 package Table
 
 import (
-	"log"
 	"shlacd/app/api"
 	"github.com/umbrella-evgeny-nefedkin/slog"
+	"errors"
+	"fmt"
 )
 
 type commonTable struct {
@@ -46,11 +47,11 @@ func (t *commonTable) AddJob(job api.Job, force bool) bool{
 	defer func(job api.Job){
 
 		if r := recover(); r!=nil{
-			slog.InfoLn("[Table->AddJob] (panic): ", r)
+			slog.Infoln("[Table -> AddJob] (panic): ", r)
 			panic(r)
 		}
 
-		slog.InfoF("[Table->AddJob] Successful added: Job#%s\n", job.Index())
+		slog.Infof("[Table->AddJob] Successful added: Job#%s\n", job.Index())
 
 		t.sync()
 
@@ -73,31 +74,36 @@ func (t *commonTable) AddJob(job api.Job, force bool) bool{
 
 }
 
-func (t *commonTable) PullJob(job api.Job) api.Job{
+func (t *commonTable) PullJob(job api.Job) (api.Job, error){
 
-	log.Println("[Table->PullJob] PullJob: Trying to lock Job...")
+	var err error
+
+	slog.Debugln("[Table -> PullJob] PullJob: Trying to lock Job...")
 	if t.db.Lock(job){
 
-		log.Printf("[Table->PullJob] PullJob: Job #%s locked\n", job.Index())
+		slog.Debugf("[Table -> PullJob] PullJob: Job #%s locked\n", job.Index())
 		job = t.FindJob(job)
-		if job != nil {
-
-		}else{
+		if job == nil {
 			t.db.UnLock(job)
-			log.Printf("[Table->PullJob] PullJob: Job '%s' not found\n", job.Index())
+			err = errors.New(fmt.Sprintf("Job '%s' not found", job.Index()))
+			slog.Debugln("[Table -> PullJob] PullJob: ", err)
 		}
 
 	}else{
-		log.Printf("[Table->PullJob] PullJob: Locking for Job#%s fail\n", job.Index())
+		err = errors.New(fmt.Sprintf("Locking for Job#%s fail", job.Index()))
+		slog.Debugln("[Table -> PullJob] PullJob: ", err)
 	}
 
-	return nil
+	return job, err
 }
 
 func (t *commonTable) PushJob(job api.Job)  {
 
-	t.db.UnLock(job)
-	log.Printf("[Table->PushJob] PushJob: Release lock for Job#%s\n", job.Index())
+	slog.Debugf("[Table -> PushJob] Release lock for Job#%s\n", job.Index())
+
+	r := t.db.UnLock(job)
+
+	slog.Debugf("[Table -> PushJob] Release lock for Job#%s: %v \n", job.Index(), r)
 
 }
 
@@ -123,7 +129,7 @@ func (t *commonTable) Close(){
 func (t *commonTable) sync(){
 
 	if !t.isSynced(){
-		slog.InfoF("[Table->sync] update version: %v --> %v\n", t.version, t.db.Version())
+		slog.Infof("[Table->sync] update version: %v --> %v\n", t.version, t.db.Version())
 		t.load()
 	}
 }
@@ -142,7 +148,7 @@ func (t *commonTable) load(){
 	//for _, jobData := range t.db.List() {
 	//	job := Job.New("")
 	//	if e := job.UnSerialize(string(jobData)); e != nil{
-	//		slog.ErrLn("[Table->load] ERR: Job skipped with error: ", e.Error())
+	//		slog.Errln("[Table->load] ERR: Job skipped with error: ", e.Error())
 	//		continue
 	//	}
 	//

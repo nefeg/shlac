@@ -14,28 +14,28 @@ func readData(connection net.Conn) (data []byte, err error){
 
 	length, err := connection.Read(tmp[:])
 	if err != nil {
-		slog.PanicLn(err)
+		slog.Panicln(err)
 	}
 
-	slog.DebugLn("[client.telnet] readData (byte,raw):", tmp[:length])
+	slog.Debugln("[client.telnet] readData (byte,raw):", tmp[:length])
 
 	if length>0{
 		data = bytes.TrimSpace(tmp[:length])
 	}
 
-	slog.DebugLn("[client.telnet] readData (byte,trim):", tmp[:length])
-	slog.DebugLn("[client.telnet] readData (string,trim):", string(data))
+	slog.Debugln("[client.telnet] readData (byte,trim):", tmp[:length])
+	slog.Debugln("[client.telnet] readData (string,trim):", string(data))
 
 	return data, err
 }
 
 func writeData(connection net.Conn, data []byte) (int, error){
 
-	slog.DebugLn("[client.telnet] writeData (raw string):", data)
+	slog.Debugln("[client.telnet] writeData (raw string):", data)
 
 	response := append(data, PacketTerm...)
 
-	slog.DebugLn("[client.telnet] writeData (bytes):", response)
+	slog.Debugln("[client.telnet] writeData (bytes):", response)
 
 	return connection.Write(response)
 }

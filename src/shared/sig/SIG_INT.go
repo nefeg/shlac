@@ -14,7 +14,7 @@ func SIG_INT(callback *func()){
 
 	go func() {
 
-		// slog.DebugLn("[shared.sig] Listening SIGINT")
+		// slog.Debugln("[shared.sig] Listening SIGINT")
 
 		sig := make(chan os.Signal, 1)
 
@@ -22,12 +22,12 @@ func SIG_INT(callback *func()){
 
 		<-sig
 
-		slog.InfoLn("[shared.sig] Received termination signal:", ErrSigINT)
-		slog.InfoLn("[shared.sig] Waiting for signal handler...")
+		slog.Infoln("[shared.sig] Received termination signal:", ErrSigINT)
+		slog.Infoln("[shared.sig] Waiting for signal handler...")
 
 		(*callback)()
 
-		slog.InfoLn("[shared.sig] Exit (SIGINT)")
+		slog.Infoln("[shared.sig] Exit (SIGINT)")
 
 		os.Exit(0)
 	}()

@@ -13,7 +13,6 @@ import (
 	"shlacd/app/api/Table"
 	"shlacd/storage"
 	"shlacd/executor"
-	"time"
 	"shlacd/client"
 	"shlacd/cli/Context"
 )
@@ -60,7 +59,7 @@ func main(){
 			message = fmt.Sprint(r)
 			code = 1
 
-			if a != nil && a.IsDebug(){slog.PanicLn(r)}
+			if a != nil && a.IsDebug(){slog.Panicln(r)}
 		}
 
 		if a != nil{
@@ -71,11 +70,10 @@ func main(){
 
 
 	Cli := cli.NewApp()
-	Cli.Version             = "0.4"
+	Cli.Version             = "0.5"
 	Cli.Name                = "ShLAC-server"
 	Cli.Usage               = "[SH]lac [L]ike [A]s [C]ron"
 	Cli.Author              = "Evgeny Nefedkin"
-	Cli.Compiled            = time.Now()
 	Cli.Email               = "evgeny.nefedkin@umbrella-web.com"
 	Cli.EnableBashCompletion= true
 	Cli.Description         = "Distributed and concurrency jobs manager"
@@ -99,8 +97,8 @@ func main(){
 
 		if c.GlobalBool(FL_DEBUG){
 			slog.SetLevel(slog.LvlDebug)
-			slog.DebugF("%s Starting...\n", logPrefix)
-			slog.DebugLn(logPrefix, " Args:", os.Args)
+			slog.Debugf("%s Starting...\n", logPrefix)
+			slog.Debugln(logPrefix, " Args:", os.Args)
 			appOptions.DebugMode = true
 		}
 
@@ -108,7 +106,7 @@ func main(){
 		if confFile := c.GlobalString(FL_CONFIG); confFile != ""{
 			ConfigPaths = []string{confFile}
 		}
-		slog.DebugLn(logPrefix, " Config paths:", ConfigPaths)
+		slog.Debugln(logPrefix, " Config paths:", ConfigPaths)
 
 
 		config = LoadConfig(ConfigPaths)
@@ -129,6 +127,8 @@ func main(){
 	}
 
 	Cli.Action = func(c *cli.Context) {
+
+		slog.Infof(logPrefix + " USER : `%s`\n", os.Getenv("USER"))
 
 		go application.Run()
 
