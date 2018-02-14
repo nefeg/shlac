@@ -3,14 +3,18 @@ package api
 import "time"
 
 type Job interface {
-	Id()                string
+	Index()             string
 	Command()           string
-	CronLine()          string
+	TimeLine()          string
+
+	IndexX(index string)
+	CommandX(command string)
+	TimeLineX(timeLine string)
+
 	TimeStart(fromTime time.Time) time.Time
 
-	SetCommand(command string)
-	SetCronLine(timeLine string)
-
 	Serialize() string
-	UnSerialize(data string)
+	UnSerialize(data string) (err error)
+
+	String() string
 }

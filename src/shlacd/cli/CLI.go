@@ -1,55 +1,48 @@
 package cli
 
+
 import (
-	"log"
+	"time"
+	"github.com/urfave/cli"
 )
 
-type CLI interface{
-	Resolve(commandLine string) (cmd Cmd, args []string, err error)
-	Add(command Cmd) CLI
-	List() []Cmd
-	Help() (help string)
-}
+func New() *cli.App{
 
+	Cli := cli.NewApp()
+	Cli.Version             = "0.4-rc1"
+	Cli.Name                = "ShLAC(client)"
+	Cli.Usage               = "[SH]lac [L]ike [A]s [C]ron"
+	Cli.Author              = "Evgeny Nefedkin"
+	Cli.Compiled            = time.Now()
+	Cli.Email               = "evgeny.nefedkin@umbrella-web.com"
+	Cli.EnableBashCompletion= true
+	Cli.Description         = "Distributed and concurrency Job manager\n" +
 
+		"\t\tSupported extended syntax:\n" +
+		"\t\t------------------------------------------------------------------------\n" +
+		"\t\tField name     Mandatory?   Allowed values    Allowed special characters\n" +
+		"\t\t----------     ----------   --------------    --------------------------\n" +
+		"\t\tSeconds        No           0-59              * / , -\n" +
+		"\t\tMinutes        Yes          0-59              * / , -\n" +
+		"\t\tHours          Yes          0-23              * / , -\n" +
+		"\t\tDay of month   Yes          1-31              * / , - L W\n" +
+		"\t\tMonth          Yes          1-12 or JAN-DEC   * / , -\n" +
+		"\t\tDay of week    Yes          0-6 or SUN-SAT    * / , - L #\n" +
+		"\t\tYear           No           1970–2099         * / , -\n" +
 
+		"\n\n" +
 
-type cli struct{
-	commands    []Cmd
-}
+		"\t\tand aliases:\n" +
+		"\t\t-------------------------------------------------------------------------------------------------\n" +
+		"\t\tEntry       Description                                                             Equivalent to\n" +
+		"\t\t-------------------------------------------------------------------------------------------------\n" +
+		"\t\t@annually   Run once a year at midnight in the morning of January 1                 0 0 0 1 1 * *\n" +
+		"\t\t@yearly     Run once a year at midnight in the morning of January 1                 0 0 0 1 1 * *\n" +
+		"\t\t@monthly    Run once a month at midnight in the morning of the first of the month   0 0 0 1 * * *\n" +
+		"\t\t@weekly     Run once a week at midnight in the morning of Sunday                    0 0 0 * * 0 *\n" +
+		"\t\t@daily      Run once a day at midnight                                              0 0 0 * * * *\n" +
+		"\t\t@hourly     Run once an hour at the beginning of the hour                           0 0 * * * * *\n" +
+		"\t\t@reboot     Not supported"
 
-func New() CLI{
-	return CLI( &cli{ commands:commandConfig } )
-}
-
-func (c *cli) Resolve(commandLine string) (cmd Cmd, args []string, err error){
-
-	for _,Com := range c.commands{
-
-		if cmdName, args, err := Com.Resolve(commandLine); err == nil{
-
-			log.Println("Resolved: ", cmdName)
-
-			return Com, args, err
-		}
-	}
-
-	return cmd, args, err
-}
-
-func (c *cli) Add(command Cmd) CLI{
-	c.commands = append(c.commands, command)
-	return c
-}
-
-func (c *cli) List() []Cmd{
-	return c.commands
-}
-
-func (c *cli) Help() (help string){
-	for _,cmd := range c.commands{
-		help += cmd.Usage() +"\n"
-	}
-
-	return help
+	return Cli
 }

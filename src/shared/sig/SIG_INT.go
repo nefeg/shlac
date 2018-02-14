@@ -5,15 +5,16 @@ import (
 	"syscall"
 	"os/signal"
 	"errors"
-	"log"
+	"github.com/umbrella-evgeny-nefedkin/slog"
 )
 
 var ErrSigINT = errors.New("SIG_INT")
 
-//noinspection GoSnakeCaseUsage
-func SIG_INT(callback func()){
+func SIG_INT(callback *func()){
 
 	go func() {
+
+		// slog.DebugLn("[shared.sig] Listening SIGINT")
 
 		sig := make(chan os.Signal, 1)
 
@@ -21,11 +22,12 @@ func SIG_INT(callback func()){
 
 		<-sig
 
-		log.Println("Received termination signal:", ErrSigINT)
+		slog.InfoLn("[shared.sig] Received termination signal:", ErrSigINT)
+		slog.InfoLn("[shared.sig] Waiting for signal handler...")
 
-		if callback != nil{
-			callback()
-		}
+		(*callback)()
+
+		slog.InfoLn("[shared.sig] Exit (SIGINT)")
 
 		os.Exit(0)
 	}()

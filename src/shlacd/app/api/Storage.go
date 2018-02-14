@@ -3,18 +3,18 @@ package api
 
 type Storage interface {
 
-	Connect() (isConnected bool)
-	Disconnect()
+	// by default assignedIndex == index, or generate by storage if index == ""
+	Add(job Job, force bool) (Job, error)
+	Load(job Job) (Job, error)
+	Rm(job Job) bool
+	List() []Job
 
-	Exists(index string) bool
-	Add(index string, record string, force bool) (result bool, err error)
-	Get(index string) (record string)
-	Rm(index string) bool
-	List() (data map[string]string)
+	Lock(job Job) bool
+	UnLock(job Job)
 
-	Lock(index string) bool
-	UnLock(index string)
-
-	Version() (version string)
 	Flush()
+
+	Version() string
+
+	Close()
 }

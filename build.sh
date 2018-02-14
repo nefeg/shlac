@@ -19,4 +19,4 @@ while test $# -gt 0; do
             ;;
     esac
 done
-echo "Done"
+#echo "Done"

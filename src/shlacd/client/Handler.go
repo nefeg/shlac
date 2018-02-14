@@ -1,11 +1,11 @@
 package client
 
 import (
-	"shlacd/app/api"
+	"shlacd/cli"
 )
 
 type Handler interface {
 
-	Handle(Tab api.TimeTable)
+	Handle(ctx cli.Context)
 }
 

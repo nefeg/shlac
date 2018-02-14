@@ -1,9 +1,9 @@
 package storage
 
 import (
-	"log"
 	"shlacd/app/api"
-	"shlacd/storage/redis"
+	"shlacd/storage/adapters"
+	"github.com/umbrella-evgeny-nefedkin/slog"
 )
 
 // storage config
@@ -20,19 +20,27 @@ type Config struct {
 
 func Resolve(conf Config) (storage api.Storage){
 
+	var adapter Adapter
+
+	slog.DebugLn("[storage->Resolve] Resolving storage config...")
+
+
 	switch conf.Type {
 	case "redis":
-		storage = redis.New(conf.Options.Network, conf.Options.Address, conf.Options.Key)
+		slog.DebugLn("[storage->Resolve] Resolved: `redis`")
+		adapter = adapters.NewRedisAdapter(conf.Options.Network, conf.Options.Address, conf.Options.Key)
 
 	case "file":
 		// todo implement this
 
 	case "script":
 		// todo implement this
-
-	default:
-		log.Panicln("Unknown storage type")
 	}
 
-	return storage
+	if adapter == nil{
+		slog.PanicLn("Unknown storage adapter")
+	}
+
+
+	return New(adapter)
 }
