@@ -70,7 +70,7 @@ func main(){
 
 
 	Cli := cli.NewApp()
-	Cli.Version             = "0.5"
+	Cli.Version             = "0.6"
 	Cli.Name                = "ShLAC-server"
 	Cli.Usage               = "[SH]lac [L]ike [A]s [C]ron"
 	Cli.Author              = "Evgeny Nefedkin"
