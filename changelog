@@ -1,0 +1,16 @@
+shlac (0.6-0ubuntu2-1) trusty; urgency=low
+
+  * Minor fixes:
+    - fix log format (see https://trello.com/c/zkuH7rHw/1545-system-shlac)
+
+  * Changes for build-scripts:
+    - changed source url (now: https://github.com/umbrella-evgeny-nefedkin/shlac)
+    - changed auto-generating of changelog
+
+ -- Evgeny Nefedkin <evgeny.nefedkin@umbrella-web.com>  Fri, 02 Mar 2018 18:09:56 +0000
+
+shlac (0.6-0ubuntu1-1) trusty; urgency=low
+
+  * Initial release
+
+ -- Evgeny Nefedkin <evgeny.nefedkin@umbrella-web.com>  Thu, 01 Mar 2018 19:21:11 +0000

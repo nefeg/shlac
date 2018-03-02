@@ -31,7 +31,7 @@ VERSION="$2"
 IS_TEST="$3"
 PROJECT_SOURCE=$(echo $4|sed 's/\//\\\//g')
 
-
+PROJECT_ROOT=$(pwd)
 BUILD_NAME="${PROJECT_NAME}-${VERSION}"
 BUILD_NAME_ALT="${PROJECT_NAME}_${VERSION}"
 WORK_DIR=$(pwd)"/build"
@@ -101,11 +101,22 @@ sed -ri 's/^#.+//' debian/copyright
 ###################################
 #   edit 'debian/changelog' file  #
 ###################################
-sed -i 's/unstable;/trusty;/' debian/changelog
 
-if [[ "$IS_TEST" != "1" ]];then
-    vi debian/changelog
+if [[ -e ${TMP_DIR}/debian/changelog ]];then
+
+    cp -f ${PROJECT_ROOT}/changelog ${TMP_DIR}/debian/changelog
+
+else
+    if [[ "$IS_TEST" != "1" ]];then
+        vi debian/changelog
+    fi
 fi
+
+#sed -i 's/unstable;/trusty;/' debian/changelog
+#
+#if [[ "$IS_TEST" != "1" ]];then
+#    vi debian/changelog
+#fi
 
 
 ## Remove useless files

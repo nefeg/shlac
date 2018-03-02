@@ -1,7 +1,7 @@
 ## These will be provided to the target
 NAME=shlac
-VERSION=0.6-0ubuntu1
-SOURCE=https://verefkin@bitbucket.org/verefkin/shlac.git
+VERSION=0.6-0ubuntu2
+SOURCE=https://github.com/umbrella-evgeny-nefedkin/shlac.git
 PPA=ppa:onm/shlac
 
 BUILD = $(shell date +%s)
