@@ -162,40 +162,40 @@ Just use default config:
 - using shlanc cli:
 
 
-    username:~/$ shlac -h
-    NAME:
-       ShLAC(client) - [SH]lac [L]ike [A]s [C]ron
-    
-    USAGE:
-       shlac [global options] command [command options] [arguments...]
-    
-    COMMANDS:
-         add, a     Add job
-         export, x  Export list of jobs
-         remove, r  Remove job by index
-         purge      Remove all job
-         get, g     Get job by id
-         import, i  import jobs from cron-formatted file
-         help, h    Shows a list of commands or help for one command
-    
-    GLOBAL OPTIONS:
-       --config value, -c value  path to daemon config-file
-       --debug                   show debug log
-       --help, -h                show help
-       --version, -v             print the version
+        username:~/$ shlac -h
+        NAME:
+           ShLAC(client) - [SH]lac [L]ike [A]s [C]ron
+        
+        USAGE:
+           shlac [global options] command [command options] [arguments...]
+        
+        COMMANDS:
+             add, a     Add job
+             export, x  Export list of jobs
+             remove, r  Remove job by index
+             purge      Remove all job
+             get, g     Get job by id
+             import, i  import jobs from cron-formatted file
+             help, h    Shows a list of commands or help for one command
+        
+        GLOBAL OPTIONS:
+           --config value, -c value  path to daemon config-file
+           --debug                   show debug log
+           --help, -h                show help
+           --version, -v             print the version
 
 
 
 - using telnet:
 
 
-    username:/shlac-project$ telnet 127.0.0.1 6609
-      Trying 127.0.0.1...
-      Connected to 127.0.0.1.
-      Escape character is '^]'.
-      ShLAC terminal connected OK
-      type "help" or "\h" for show available commands
-      >>_
+        username:/shlac-project$ telnet 127.0.0.1 6609
+          Trying 127.0.0.1...
+          Connected to 127.0.0.1.
+          Escape character is '^]'.
+          ShLAC terminal connected OK
+          type "help" or "\h" for show available commands
+          >>_
 
 
 
