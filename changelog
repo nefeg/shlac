@@ -1,4 +1,4 @@
-shlac (0.6-0ubuntu2-1) trusty; urgency=low
+shlac (0.6-0ubuntu3-1) trusty; urgency=low
 
   * Minor fixes:
     - fix log format (see https://trello.com/c/zkuH7rHw/1545-system-shlac)

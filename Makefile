@@ -1,6 +1,6 @@
 ## These will be provided to the target
 NAME=shlac
-VERSION=0.6-0ubuntu2
+VERSION=0.6-0ubuntu3
 SOURCE=https://github.com/umbrella-evgeny-nefedkin/shlac.git
 PPA=ppa:onm/shlac
 
@@ -64,7 +64,7 @@ configure_test:
 	@echo "##############################"
 
 	$(MAKE) clean
-	./configure_ppa.sh shlac $(VERSION) 1 https://verefkin@bitbucket.org/verefkin/shlac.git
+	./configure_ppa.sh shlac $(VERSION) 1 $(SOURCE)
 
 	cd build/tmp; debuild  -S -us -uc
 
@@ -81,7 +81,7 @@ configure:
 	$(MAKE) clean
 
 	@echo " ==> Configure build..."
-	./configure_ppa.sh shlac $(VERSION) 0 https://verefkin@bitbucket.org/verefkin/shlac.git
+	./configure_ppa.sh shlac $(VERSION) 0 $(SOURCE)
 
 	### build package (https://help.launchpad.net/Packaging/PPA/BuildingASourcePackage)
 	cd build/tmp; debuild -S -sa
