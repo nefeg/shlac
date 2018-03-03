@@ -6,10 +6,10 @@ Distributed Concurrency job manager
 2. [INSTALL](#INSTALL)
 3. [Configuring](#Configuring)
 4. [Usage](#Usage)
-5. [Date format](#Date format)
+5. [Date format](#Date-format)
 6. [License](#License)
 
-##Features
+## Features
 
  - extended cron syntax
  - remote/local job storage (redis/file)
@@ -17,10 +17,10 @@ Distributed Concurrency job manager
  - decentralized structure
  
  
-##INSTALL
+## INSTALL
 
 
-### From Ubuntu repository via apt-get <a name="apt"></a>
+### From Ubuntu repository via apt-get
 
     # add PPA to apt source list:
     sudo add-apt-repository ppa:onm/shlac
@@ -31,13 +31,13 @@ Distributed Concurrency job manager
 
 
 
-####From .deb package
+### From .deb package
 
 Download package from [Launchpad PPA](https://launchpad.net/~onm/+archive/ubuntu/shlac/+packages) and install:
 
         sudo dpkg -i path/to/package.deb
 
-####Compile from source (Required 'go' compiler)
+### Compile from source (Required 'go' compiler)
    
    
     # install "go"
@@ -59,11 +59,11 @@ Download package from [Launchpad PPA](https://launchpad.net/~onm/+archive/ubuntu
 
     
 
-##Configuring
+## Configuring
 
 
 
-#### Default config:
+### Default config:
         {
             "storage": {
                 "type": "redis",
@@ -93,7 +93,7 @@ Download package from [Launchpad PPA](https://launchpad.net/~onm/+archive/ubuntu
 
 
 
-#### Parameters
+### Parameters
 
 
 **[STORAGE]**
@@ -156,7 +156,7 @@ Just use default config:
 ```
 
 
-##Usage
+## Usage
 
 
 - using shlanc cli:
@@ -199,7 +199,7 @@ Just use default config:
 
 
 
-##Date format
+## Date format
 
 
    This utility uses [modified cronexpr-library](https://github.com/umbrella-evgeny-nefedkin/cronexpr) (here the [origin library](https://github.com/gorhill/cronexpr))  
@@ -233,6 +233,6 @@ Just use default config:
 
    For more information about supported syntax see [documentation of parser](https://github.com/umbrella-evgeny-nefedkin/cronexpr) 
 
-##License
+## License
 
 - MIT see <https://github.com/umbrella-evgeny-nefedkin/shlac/blob/master/LICENSE>
