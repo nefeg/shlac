@@ -2,12 +2,12 @@ Distributed Concurrency job manager
 =============================
 
 # Table of Contents
-1. [Features](#Features)
-2. [INSTALL](#INSTALL)
-3. [Configuring](#Configuring)
-4. [Usage](#Usage)
-5. [Date format](#Date-format)
-6. [License](#License)
+1. [Features](#features)
+2. [INSTALL](#install)
+3. [Configuring](#configuring)
+4. [Usage](#usage)
+5. [Date format](#date-format)
+6. [License](#license)
 
 ## Features
 
