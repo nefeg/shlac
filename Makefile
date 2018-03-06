@@ -1,6 +1,6 @@
 ## These will be provided to the target
 NAME=shlac
-VERSION=0.6-0ubuntu3
+VERSION=0.6-0ubuntu4
 SOURCE=https://github.com/umbrella-evgeny-nefedkin/shlac.git
 PPA=ppa:onm/shlac
 
@@ -17,7 +17,7 @@ GOBIN = $(GOPATH)/bin
 TARGET1 = $(NAME)d
 TARGET2 = $(NAME)
 BIN	= $(DESTDIR)/usr/bin
-CONF = $(DESTDIR)/etc/shlac
+CONF = $(DESTDIR)/etc/$(NAME)
 
 
 export PATH := $(PATH):/usr/local/go/bin

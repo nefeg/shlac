@@ -23,8 +23,8 @@ var sigIntHandler   = func(){}
 var logPrefix       = "[main]"
 var ConfigPaths     = []string{
 	"config.json",
-	"/etc/shlanc/config.json",
-	"/etc/shlancd/config.json",
+	"/etc/shlac/config.json",
+	"/etc/shlacd/config.json",
 }
 
 func init()  {
