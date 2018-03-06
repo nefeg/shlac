@@ -1,3 +1,10 @@
+shlac (0.6-0ubuntu4-1) trusty; urgency=low
+
+  * Fixed:
+    - config-file paths
+
+ -- Evgeny Nefedkin <evgeny.nefedkin@umbrella-web.com>  Tue, 06 Mar 2018 13:11:28 +0000
+
 shlac (0.6-0ubuntu3-1) trusty; urgency=low
 
   * Minor fixes:

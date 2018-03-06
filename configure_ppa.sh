@@ -51,11 +51,11 @@ echo "$PROJECT_NAME ($BUILD_NAME_ALT)"
 ## copy sources
 mkdir -p $SOURCE_DIR
 cp -rf src/ $SOURCE_DIR/src/
-cp -rf $SOURCE_DIR/src/vendor/* $SOURCE_DIR/src/
 
 cp Makefile $SOURCE_DIR/Makefile
 cp config.json $SOURCE_DIR/config.json
-cp readme.md $SOURCE_DIR/readme.md
+cp README.md $SOURCE_DIR/README.md
+cp LICENSE $SOURCE_DIR/LICENSE
 
 ## remove .git's directories
 find $SOURCE_DIR/ -name .git | rm -fr
