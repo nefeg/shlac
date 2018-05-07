@@ -50,12 +50,12 @@ Download package from [Launchpad PPA](https://launchpad.net/~onm/+archive/ubuntu
     cd shlac; ./build.sh
     
     # change permissions
-    chmod +x bin/shlancd
+    chmod +x bin/shlacd
     
     # run server
-    bin/shlancd -c config.json
-    # or run shlancd as daemon
-    # bin/shlancd -c config.json >> shlancd.log &2>1 &
+    bin/shlacd -c config.json
+    # or run shlacd as daemon
+    # bin/shlacd -c config.json >> shlacd.log &2>1 &
 
     
 
@@ -159,7 +159,7 @@ Just use default config:
 ## Usage
 
 
-- using shlanc cli:
+- using shlac cli:
 
 
         username:~/$ shlac -h
